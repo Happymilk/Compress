@@ -10,6 +10,9 @@
 #include <time.h>
 #include <math.h>
 
+//#include "SPLAY\SplayAlg.h"
+
+//using namespace Splay;
 using namespace std;
 
 struct Information
@@ -865,6 +868,7 @@ void ShortSize(double size, wchar_t str[255])
 
 	wchar_t buffer[MAX_PATH];
 	swprintf(buffer, L"%f", shortsize);
+	buffer[wcslen(buffer)-5] = 0;
 	switch(power)
 	{
 		case 0:
@@ -901,15 +905,14 @@ INT_PTR CALLBACK InfoWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 		static HWND LabelName, LabelSize, LabelType,LabelState,LabelCrtd,LabelLast,LabelAtr;
 		TCHAR stringCrtd[255], stringLast[255];
 		wchar_t istr[255];
-		double intSize;
 		if (wcscmp(_dir,_T(""))==0)
 			info=GetFileInform(dir);
 		else
 			info=GetFileInform(_dir);
 		LabelName =CreateWindow(_T("static"), info.name, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
 						  50, 10, 215, 16, hDlg, (HMENU)ID_LABELNAME, hInst, NULL);
-		intSize = floor(info.size+0.5);
-		swprintf(istr, L"%f", intSize);
+		swprintf(istr, L"%f", info.size);
+		istr[wcslen(istr)-7] = 0;
 		wcscat(istr,_T(" bytes"));
 		ShortSize(info.size,istr);
 		LabelSize =CreateWindow(_T("static"), istr, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
