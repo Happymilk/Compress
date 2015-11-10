@@ -34,7 +34,6 @@ namespace AR002
 	#define CBIT 9 // $\lfloor \log_2 NC \rfloor + 1$ 
 	#define CODE_BIT 16 //codeword length 
 	#define PERCOLATE 1
-	#define NIL 0
 	#define MAX_HASH_VAL (3 * DICSIZ + (DICSIZ / 512 + 1) * UCHAR_MAX)
 	#if MAXMATCH <= (UCHAR_MAX + 1)
 		static uchar *level;

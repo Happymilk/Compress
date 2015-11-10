@@ -908,25 +908,25 @@ static void init_slide(void)
 	{
         level[i] = 1;
         #if PERCOLATE
-            position[i] = NIL;  //sentinel
+            position[i] = NULL;  //sentinel
 		#endif
     }
     for (i = DICSIZ; i < DICSIZ * 2; i++) 
-		parent[i] = NIL;
+		parent[i] = NULL;
     avail = 1;
     for (i = 1; i < DICSIZ - 1; i++) 
 		next[i] = i + 1;
-    next[DICSIZ - 1] = NIL;
+    next[DICSIZ - 1] = NULL;
     for (i = DICSIZ * 2; i <= MAX_HASH_VAL; i++) 
-		next[i] = NIL;
+		next[i] = NULL;
 }
 
-static node child(node q, uchar c) //q's child for character c (NIL if not found) 
+static node child(node q, uchar c) //q's child for character c (NULL if not found) 
 {
     node r;
 
     r = next[HASH(q, c)];
-    parent[NIL] = q;  //sentinel 
+    parent[NULL] = q;  //sentinel 
     while (parent[r] != q)
 		r = next[r];
     return r;
@@ -975,7 +975,7 @@ static void insert_node(void)
 	{
         matchlen--;
         r = (matchpos + 1) | DICSIZ;
-        while ((q = parent[r]) == NIL) 
+        while ((q = parent[r]) == NULL) 
 			r = next[r];
         while (level[q] >= matchlen) 
 		{
@@ -1004,7 +1004,7 @@ static void insert_node(void)
 	{
         q = text[pos] + DICSIZ;  
 		c = text[pos + 1];
-        if ((r = child(q, c)) == NIL) 
+        if ((r = child(q, c)) == NULL) 
 		{
             makechild(q, c, pos);  
 			matchlen = 1;
@@ -1043,7 +1043,7 @@ static void insert_node(void)
 			break;
         position[r] = pos;
         q = r;
-        if ((r = child(q, *t1)) == NIL) 
+        if ((r = child(q, *t1)) == NULL) 
 		{
             makechild(q, *t1, pos); 
 			return;
@@ -1057,7 +1057,7 @@ static void insert_node(void)
 	next[pos] = t;  
 	prev[t] = pos;
     parent[pos] = q; 
-	parent[r] = NIL;
+	parent[r] = NULL;
     next[r] = pos;  //special use of next[] 
 }
 
@@ -1069,14 +1069,14 @@ static void delete_node(void)
         node r, s, t, u;
     #endif
 
-    if (parent[pos] == NIL) 
+    if (parent[pos] == NULL) 
 		return;
     r = prev[pos];  
 	s = next[pos];
     next[r] = s;  
 	prev[s] = r;
     r = parent[pos];
-	parent[pos] = NIL;
+	parent[pos] = NULL;
     if (r >= DICSIZ || --childcount[r] > 1) 
 		return;
     #if PERCOLATE
@@ -1119,7 +1119,7 @@ static void delete_node(void)
 	prev[t] = s;  
 	next[s] = t;
     parent[s] = parent[r]; 
-	parent[r] = NIL;
+	parent[r] = NULL;
     next[r] = avail;  
 	avail = r;
 }

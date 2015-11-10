@@ -1,4 +1,4 @@
-﻿Сборка начата 10.11.2015 22:49:21.
+﻿Сборка начата 10.11.2015 22:58:17.
      1>Проект "D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\AR002\AR002\AR002.vcxproj" в узле 2 (целевые объекты Rebuild).
      1>ClCompile:
          D:\MS Visual\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D AR002_EXPORTS /D _CRT_SECURE_NO_WARNINGS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt AR002Alg.cpp
@@ -15,4 +15,4 @@
 
 Построение успешно завершено.
 
-Затраченное время: 00:00:00.67
+Затраченное время: 00:00:00.30
