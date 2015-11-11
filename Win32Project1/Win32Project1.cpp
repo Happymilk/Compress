@@ -9,10 +9,15 @@
 #include <shellapi.h>
 #include <time.h>
 #include <math.h>
+#include "AR002\AR002\AR002Alg.h"
+#include "FIN\FIN\FinAlg.h"
+#include "HUF\HUF\Huf.h"
+#include "SPLAY\SPLAY\SplayAlg.h"
 
-//#include "SPLAY\SplayAlg.h"
-
-//using namespace Splay;
+using namespace AR002;
+using namespace Fin;
+using namespace Huf;
+using namespace Splay;
 using namespace std;
 
 struct Information
@@ -21,7 +26,6 @@ struct Information
 	TCHAR type[MAX_PATH];
 	double size;    
 	BOOL flag;     //state
-	TCHAR atr[MAX_PATH]; //atributes
 	FILETIME crtd; //created
 	FILETIME last; //last access
 }info;
@@ -32,10 +36,9 @@ LRESULT CALLBACK WndProc(HWND,UINT,UINT,LONG);
 INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK InfoWindow(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK Archivation(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK Unarchivation(HWND, UINT, WPARAM, LPARAM);
 
 TCHAR szWindowClass[MAX_LOADSTRING],szTitle[MAX_LOADSTRING],dir[MAX_PATH],
-	dir1[MAX_PATH],copy_buf1[MAX_PATH];
+	dir1[MAX_PATH],copy_buf1[MAX_PATH],clearString[MAX_PATH];
 HINSTANCE hInst;
 HWND hWndChild = NULL;
 HIMAGELIST g_hImageList = NULL;
@@ -54,7 +57,7 @@ int sel,k=0,y=9;
 TCHAR c,*ls;
 TCHAR buf1[MAX_PATH], cm_dir_from[MAX_PATH], cm_dir_to[MAX_PATH], 
 	cm_dir_to_[MAX_PATH],cm_dir_from_[MAX_PATH],path[MAX_PATH],
-	_dir[MAX_PATH],_dir1[MAX_PATH],buf[MAX_PATH],tempdir[MAX_PATH],copyBuffer[MAX_PATH];
+	_dir[MAX_PATH],_dir1[MAX_PATH],buff[MAX_PATH],tempdir[MAX_PATH],copyBuffer[MAX_PATH];
 LPCTSTR s;
 bool isCutting = FALSE;
 
@@ -178,7 +181,6 @@ void AddColToListView(TCHAR *st, int sub, int size)
 	lvc.fmt = LVCFMT_LEFT;
 
 	ListView_InsertColumn(hListView_1, sub, &lvc);
-	//ListView_InsertColumn(hListView_2, sub, &lvc);
 }
  
 int i;
@@ -278,87 +280,6 @@ void FindFile(HWND hList, TCHAR c_dir[MAX_PATH])
 		InitListViewImageLists(hList,i, c_dir);//тут уже передаем HWND ListBox, и кол-во фаилов
 	}
 }
- 
-/*DWORD Crc8(DWORD *pcBlock, unsigned int len)
-{
-    DWORD crc = 0xFF;
-    unsigned int i;
-
-    while (len--)
-    {
-        crc ^= *pcBlock++;
-        for (i = 0; i < 8; i++)
-            crc = crc & 0x80 ? (crc << 1) ^ 0x31 : crc << 1;
-    }
-
-    return crc;
-}
- 
-DWORD GetCheckSum(TCHAR filename[MAX_PATH])
-{
-	HANDLE f;
-	DWORD fsize, freal, res_crc;
-	DWORD buf[500];
-	void *p;
-	long long nFileLen = 0;
-	DWORD dwSizeHigh=0, dwSizeLow=0;
-
-	f = CreateFile(filename, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-
-	if (f != INVALID_HANDLE_VALUE)
-	{
-		dwSizeLow = GetFileSize(f, &dwSizeHigh);
-	    nFileLen = (dwSizeHigh * (MAXDWORD+1)) + dwSizeLow;
-
-	    SetFilePointer(f, nFileLen / 2, NULL, FILE_BEGIN );
-	    fsize = nFileLen - 1 - SetFilePointer(f,0,0, FILE_CURRENT);
-
-	    if (fsize > 500) 
-			fsize = 500;
-	    
-		ReadFile(f, buf, fsize, &freal, NULL);
-	    CloseHandle(f);
-	    p = &buf;
-	    res_crc = Crc8(buf, fsize);
-	}
-
-	return res_crc;
-}*/
- 
-/*LPCWSTR SumCrcFile(TCHAR c_dir[MAX_PATH])
-{
-	TCHAR dir1[MAX_PATH];
-	DWORD sum;
-	WIN32_FIND_DATA FindFileData;
-	HANDLE hFind;
-	int k=0;
-
-	i=0;
-	hFind = FindFirstFile(c_dir, &FindFileData);
-	
-	if (hFind == INVALID_HANDLE_VALUE)
-		MessageBox(0,_T("Ошибка"), _T("Не найден"),  MB_OK |MB_ICONWARNING);
-	else
-	{
-		do
-		{
-			wcscpy(dir1, c_dir);
-			dir1[wcslen(dir1)-1] = 0;
-			wcscat(dir1, FindFileData.cFileName);
-
-			if((FILE_ATTRIBUTE_DIRECTORY & GetFileAttributes(dir1)) != FILE_ATTRIBUTE_DIRECTORY)
-			{
-				break;
-			}
-			
-			++i;
-		} while (FindNextFile(hFind, &FindFileData) != 0);
-
-		FindClose(hFind);
-	}
-
-	return dir1;
-}*/
 
 void Copy_File(TCHAR from[MAX_PATH], TCHAR directory[MAX_PATH], TCHAR buf[MAX_PATH])
 {
@@ -380,36 +301,30 @@ Information GetFileInform(TCHAR file[MAX_PATH])
 	WIN32_FIND_DATA fd;
 	Information fileInfo;
 
+	wcscpy(fileInfo.type,_T(""));
+
 	FindFirstFile(file, &fd);
-	
-	if((FILE_ATTRIBUTE_HIDDEN & GetFileAttributes(fd.cFileName)) == FILE_ATTRIBUTE_HIDDEN)
-		wcscpy(fileInfo.atr,_T("Hidden "));
-	else if((FILE_ATTRIBUTE_NORMAL & GetFileAttributes(fd.cFileName)) == FILE_ATTRIBUTE_NORMAL)
-		wcscpy(fileInfo.atr,_T("Visible "));
-	if((FILE_ATTRIBUTE_READONLY & GetFileAttributes(fd.cFileName)) == FILE_ATTRIBUTE_READONLY)
-		wcscat(fileInfo.atr,_T("readonly "));
-	else
-		wcscat(fileInfo.atr,_T("readable writable "));
-	if((FILE_ATTRIBUTE_SYSTEM & GetFileAttributes(fd.cFileName)) == FILE_ATTRIBUTE_SYSTEM)
-		wcscat(fileInfo.type,_T("system"));
 	
 	fileInfo.crtd=fd.ftCreationTime;
 	fileInfo.last=fd.ftLastAccessTime;
 	
 	wcscpy(fileInfo.name,fd.cFileName);
-	
+
 	fileInfo.size=(fd.nFileSizeHigh * (MAXDWORD64+1)) + fd.nFileSizeLow;
-	
-	if((FILE_ATTRIBUTE_DIRECTORY & GetFileAttributes(fd.cFileName)) == FILE_ATTRIBUTE_DIRECTORY)
-		wcscpy(fileInfo.type,_T("Directory"));
-	else if((FILE_ATTRIBUTE_NORMAL & GetFileAttributes(fd.cFileName)) == FILE_ATTRIBUTE_NORMAL)
-		wcscpy(fileInfo.type,_T("File"));
-	else if((FILE_ATTRIBUTE_DEVICE & GetFileAttributes(fd.cFileName)) == FILE_ATTRIBUTE_DEVICE)
+
+	if(fd.dwFileAttributes == FILE_ATTRIBUTE_DEVICE)
 		wcscpy(fileInfo.type,_T("Device"));
-	else if((FILE_ATTRIBUTE_SYSTEM & GetFileAttributes(fd.cFileName)) == FILE_ATTRIBUTE_SYSTEM)
+	else if(fd.dwFileAttributes == FILE_ATTRIBUTE_NORMAL)
+		wcscpy(fileInfo.type,_T("File"));
+	else if(fd.dwFileAttributes == FILE_ATTRIBUTE_SYSTEM)
 		wcscpy(fileInfo.type,_T("System file"));
-	else if((FILE_ATTRIBUTE_VIRTUAL & GetFileAttributes(fd.cFileName)) == FILE_ATTRIBUTE_VIRTUAL)
+	else if(fd.dwFileAttributes == FILE_ATTRIBUTE_VIRTUAL)
 		wcscpy(fileInfo.type,_T("Virtual file"));
+	else if(fd.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY)
+		wcscpy(fileInfo.type,_T("Directory")); 
+
+	if (wcscmp(fileInfo.type,clearString)==0)
+		wcscpy(fileInfo.type,_T("File"));
 	
 	return fileInfo;
 }
@@ -421,7 +336,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	LPNMHDR lpnmHdr = (LPNMHDR)lParam;
 	
 	GetLogicalDrives();
-	GetLogicalDriveStrings(128, buf);
+	GetLogicalDriveStrings(128, buff);
 	
 	switch (msg)
 	{
@@ -439,8 +354,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     			case IDM_DEL:
     			{
 					Delete_File(cm_dir_from, dir, copy_buf1);
-    				//MessageBox(0, _T("Файл удалён"), _T(""),0);
-    				//FindFile(hListView_1, cm_dir_from);
 					SendMessage(hListView_1,LVM_REDRAWITEMS,0,0);
     				return 0;
     			}
@@ -456,25 +369,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					if (!isCutting)
 					{
 						wcscpy(cm_dir_to, dir);
-						//wcscpy(cm_dir_to_, dir1);
     					cm_dir_to[wcslen(cm_dir_to)-1] = 0;
     					wcscat(cm_dir_to, copyBuffer);
     					CopyFile(cm_dir_from, cm_dir_to, FALSE);
-    					//MessageBox(0, _T("Файл скопирован"), _T(""),0);
-    					//FindFile(hListView_1, cm_dir_to);
 						SendMessage(hListView_1,LVM_REDRAWITEMS,0,0);
 					}
 					else
 					{
 						wcscpy(cm_dir_to, dir);
-						//wcscpy(cm_dir_to_, dir1);
     					cm_dir_to[wcslen(cm_dir_to)-1] = 0;
     					wcscat(cm_dir_to, copyBuffer);
     					CopyFile(cm_dir_from, cm_dir_to, FALSE);
 						DeleteFile(cm_dir_from);
-    					//MessageBox(0, _T("Файл вырезан"), _T(""),0);
 						wcscpy(cm_dir_from,cm_dir_to);
-    					//FindFile(hListView_1, cm_dir_to);
 						isCutting=FALSE;
 						SendMessage(hListView_1,LVM_REDRAWITEMS,0,0);
 					}
@@ -483,7 +390,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				case IDM_UP:
 				{
 					bool isFind = false;
-					ls = buf;
+					ls = buff;
 					dir[wcslen(dir)-1]=0;
 					while (*ls)
 					{
@@ -518,7 +425,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						SetWindowText(hLabel_3, dir);
 						FindFile(hListView_1, dir);
 					}
-					//SendMessage(hComboBox_1,CBN_SELENDOK,sel,(LPARAM)dir);
 					return 0;
 				}
 				case IDM_INFO:
@@ -531,35 +437,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 					DialogBox(hInst, MAKEINTRESOURCE(IDM_ARCH), hwnd, Archivation);
 					return 0;
 				}
-				case IDM_UNARCH:
-				{
-					DialogBox(hInst, MAKEINTRESOURCE(IDM_UNARCH), hwnd, Unarchivation);
-					return 0;
-				}
 				case IDM_ABOUT:
 					DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hwnd, About);
 					return 0;
 				case IDM_EXIT:
 					DestroyWindow(hwnd);
 					return 0;
-    			/*case IDM_CRC:
-    			{
-    				wcscpy(cm_dir_from, dir);
-    				cm_dir_from[wcslen(cm_dir_from)-1] = 0;
-    				wcscpy(cm_dir_to, dir1);
-    				cm_dir_to[wcslen(cm_dir_to)-1] = 0;
-    				wcscat(cm_dir_from, _T("*"));
-    				wcscat(cm_dir_to, _T("*"));
-    				s = SumCrcFile(cm_dir_from);
-     	            sum1 = GetCheckSum((TCHAR*)s);
-     	            s = SumCrcFile(cm_dir_to);
-    				sum2 = GetCheckSum((TCHAR*)s);
-    				if (sum1 == sum2) 
-						MessageBox(0,_T("Одинаковые каталоги."), _T(""),0); 
-					else 
-						MessageBox(0,_T("Разные каталоги!"), _T(""),0);
-    				return 0;
-    			}*/
             	case ID_COMBOBOX_1:
                 {
                 	switch(HIWORD(wParam))
@@ -579,25 +462,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							return 0;
                     }
                 }
-            	/*case ID_COMBOBOX_2:
-                {
-                	switch(HIWORD(wParam))
-                    {
-                		case CBN_SELENDOK:
-                        {
-                        	wcscpy(path, _T(""));
-                            sel= SendMessage(hComboBox_2,CB_GETCURSEL,0,0);
-                            SendMessage(hComboBox_2,CB_GETLBTEXT,sel,(LPARAM)path);
-                            wcscat(path, _T("\*"));
-                            wcscpy(dir1, path);
-                            SetWindowText(hLabel_4, dir1);
-                            FindFile(hListView_2, dir1);
-                            return 0;
-                        }
-                		default: 
-							return 0;
-                    }
-                }*/
                 return 0;
             }
     	}
@@ -695,109 +559,39 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						FindFile(hListView_1, dir);
 					}
 				}
-				else 
-				{
-					/*if (lpnmHdr->idFrom == ID_LISTVIEW_2)
-					{
-						wcscpy(_dir1, dir1);
-						_dir1[wcslen(_dir1)-1] = 0;
-						wcscat(_dir1, buf1);
-
-						for (int i = 0; i<wcslen(buf1); i++)
-						{
-							string s;
-							s = buf1[i];
-							
-							if (s == ".") 
-								k = i;
-						}
-
-						if ((k != 0) && (k != 1))
-							ShellExecute(0, _T("open"), _dir1, NULL, NULL, SW_SHOWNORMAL);
-						else
-						{
-							if (wcscmp(buf1, _T(".."))==0)
-							{
-								dir1[wcslen(dir1)-2]=0;
-			
-								for (i=0; i< wcslen(dir1); i++)
-								{
-									string s;
-									s = dir1[i];
-					
-									if (s == "\\") 
-										k = i;
-								}
-
-								dir1[k+1]=0;
-								wcscat(dir1, _T("*"));
-							}
-							else 
-								if (wcscmp(buf1, _T("."))==0)
-								{
-									dir1[3] = 0;
-									wcscat(dir1, _T("*"));
-								}
-								else
-								{
-									wcscat(buf1, _T("\\*"));
-									dir1[wcslen(dir1)-1]=0;
-									wcscat(dir1, buf1);
-								}
-
-							SetWindowText(hLabel_4, dir1);
-							FindFile(hListView_2, dir1);
-						}
-					}*/
-				}
 			break;
 		}
 
 		case WM_CREATE:
 		{
 			hToolBar = CreateSimpleToolbar(hwnd);
-
 			hLabel_1 =CreateWindow(_T("static"), _T(""),WS_CHILD | WS_VISIBLE | WS_TABSTOP,
 						  0, 35+y, 900, 16,hwnd, (HMENU)ID_LABEL_1, hInst, NULL);
 			hLabel_2 =CreateWindow(_T("static"), _T(""),WS_CHILD | WS_VISIBLE | WS_TABSTOP,
 						  0, 45+y, 900, 16,hwnd, (HMENU)ID_LABEL_2, hInst, NULL);
 			hLabel_3 =CreateWindow(_T("static"), _T("way1"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 3, 57+y, 900, 16,
 						  hwnd, (HMENU)ID_LABEL_3, hInst, NULL);
-			//hLabel_4 =CreateWindow(_T("static"), _T("way2"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 453, 57+y, 400, 16,
-			//			  hwnd, (HMENU)ID_LABEL_4, hInst, NULL);
-
 			hComboBox_1 =CreateWindow(_T("ComboBox"), NULL,	WS_CHILD|WS_VISIBLE|WS_VSCROLL|CBS_DROPDOWN|CBS_SORT,
 							3, 33+y, 50, 110, hwnd, (HMENU) ID_COMBOBOX_1, hInst, NULL);
-			//hComboBox_2 =CreateWindow(_T("ComboBox"), NULL, WS_CHILD|WS_VISIBLE|WS_VSCROLL|CBS_DROPDOWN|CBS_SORT,
-			//				453, 33+y, 100, 110, hwnd, (HMENU) ID_COMBOBOX_2, hInst, NULL);
-
 			hListView_1 =CreateWindow(WC_LISTVIEW, NULL,LVS_REPORT|WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|LVS_AUTOARRANGE,
 							0, 60+y+12, 900, 500, hwnd,	(HMENU) ID_LISTVIEW_1, hInst, NULL);
-			//hListView_2 =CreateWindow(WC_LISTVIEW, NULL,LVS_REPORT|WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|LVS_AUTOARRANGE,
-			//				451, 60+y+15, 450, 500, hwnd,(HMENU) ID_LISTVIEW_2, hInst, NULL);
-			
-            ls = buf;
+            ls = buff;
 
             while (*ls)
             {
                     SendMessage(hComboBox_1, CB_ADDSTRING, 0, (LPARAM)ls);
-                    //SendMessage(hComboBox_2, CB_ADDSTRING, 0, (LPARAM)ls);
                     ls += wcslen(ls)+1;
             }
 
 			SendMessage(hComboBox_1, CB_SETCURSEL, 0, 0);
-			//SendMessage(hComboBox_2, CB_SETCURSEL, 1, 0);
 
 			AddColToListView(_T("Name"), 1, 650);
 			AddColToListView(_T("Type"), 2, 103);
 			AddColToListView(_T("Size"), 3, 130);
 
-			//SetWindowText(hLabel_3, dir);
 			FindFile(hListView_1, dir);
 			SetWindowText(hLabel_3, dir);
 
-			//FindFile(hListView_2, dir1);
-			//SetWindowText(hLabel_4, dir1);
 			return 0;
 		}
 
@@ -919,20 +713,12 @@ INT_PTR CALLBACK InfoWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 						  50, 50, 500, 16, hDlg, (HMENU)ID_LABELSIZE, hInst, NULL);
 		LabelType =CreateWindow(_T("static"), (LPCWSTR)info.type, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
 						  50, 30, 215, 16, hDlg, (HMENU)ID_LABELTYPE, hInst, NULL);
-		if (info.flag)
-			LabelState =CreateWindow(_T("static"), _T("Ready to compress"), WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-						  50, 75, 215, 16, hDlg, (HMENU)ID_LABELSTATE, hInst, NULL);
-		else
-			LabelState =CreateWindow(_T("static"), _T("Can't be compressed"), WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-						  50, 75, 215, 16, hDlg, (HMENU)ID_LABELSTATE, hInst, NULL);
 		FileTimeToString(info.crtd,stringCrtd);
 		LabelCrtd =CreateWindow(_T("static"), stringCrtd, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-						  80, 150, 215, 16, hDlg, (HMENU)ID_LABELCRTD, hInst, NULL);
+						  80, 70, 215, 16, hDlg, (HMENU)ID_LABELCRTD, hInst, NULL);
 		FileTimeToString(info.last,stringLast);
 		LabelLast =CreateWindow(_T("static"), stringLast, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-						  80, 170, 215, 16, hDlg, (HMENU)ID_LABELLAST, hInst, NULL);
-		LabelAtr =CreateWindow(_T("static"), info.atr, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-						  70, 95, 215, 16, hDlg, (HMENU)ID_LABELATRS, hInst, NULL);
+						  80, 90, 215, 16, hDlg, (HMENU)ID_LABELLAST, hInst, NULL);
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -947,25 +733,6 @@ INT_PTR CALLBACK InfoWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 }
 
 INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return (INT_PTR)TRUE;
-
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
-		break;
-	}
-	return (INT_PTR)FALSE;
-}
-
-INT_PTR CALLBACK Unarchivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
 	switch (message)
