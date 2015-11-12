@@ -272,12 +272,15 @@ void FindFile(HWND hList, TCHAR c_dir[MAX_PATH])
 	{
 		do
 		{
-			if((FILE_ATTRIBUTE_DIRECTORY & GetFileAttributes(FindFileData.cFileName)) != FILE_ATTRIBUTE_DIRECTORY)
-				View_List(_T("file"),hList,i,1); 
-			else 
-				View_List(_T("directory"),hList,i,1);
-			View_List(FindFileData.cFileName,hList,i,0);//выз. ф-ция Viev_List передаем туда наиденый фаил ,и HWND ListBox и итератор i++,
-			++i;
+			if(FindFileData.cFileName != _T("."))
+			{
+				if((FILE_ATTRIBUTE_DIRECTORY & GetFileAttributes(FindFileData.cFileName)) != FILE_ATTRIBUTE_DIRECTORY)
+					View_List(_T("file"),hList,i,1); 
+				else 
+					View_List(_T("directory"),hList,i,1);
+				View_List(FindFileData.cFileName,hList,i,0);//выз. ф-ция Viev_List передаем туда наиденый фаил ,и HWND ListBox и итератор i++,
+				++i;
+			}
 		} while (FindNextFile(hFind, &FindFileData) != 0);
 		
 		FindClose(hFind); //закрываем работу поиска фаилов
