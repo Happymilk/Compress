@@ -38,7 +38,7 @@ INT_PTR CALLBACK InfoWindow(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK Archivation(HWND, UINT, WPARAM, LPARAM);
 
 TCHAR szWindowClass[MAX_LOADSTRING],szTitle[MAX_LOADSTRING],dir[MAX_PATH],
-	dir1[MAX_PATH],copy_buf1[MAX_PATH],clearString[MAX_PATH];
+	dir1[MAX_PATH],copy_buf1[MAX_PATH];
 HINSTANCE hInst;
 HWND hWndChild = NULL;
 HIMAGELIST g_hImageList = NULL;
@@ -48,7 +48,7 @@ static HWND hListView_1, hListView_2,hComboBox_1, hComboBox_2,hLabel_1,
 
 //создание панели инстурментов
 const int ImageListID = 0;
-const int numButtons = 6;
+const int numButtons = 7;
 const DWORD buttonStyles = BTNS_AUTOSIZE;
 const int bitmapSize = 16;
 
@@ -61,12 +61,16 @@ TCHAR buf1[MAX_PATH], cm_dir_from[MAX_PATH], cm_dir_to[MAX_PATH],
 LPCTSTR s;
 bool isCutting = FALSE;
 
-TBBUTTON tbButtons[numButtons] = { { MAKELONG(STD_UNDO, ImageListID), IDM_UP, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Back")) },
-								   { MAKELONG(STD_COPY, ImageListID), IDM_COPY, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Copy")) },
-								   { MAKELONG(STD_DELETE, ImageListID), IDM_DEL, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Delete")) },
-								   { MAKELONG(STD_CUT, ImageListID), IDM_CUT, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Cut")) },
-								   { MAKELONG(STD_PASTE, ImageListID), IDM_PASTE, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Paste")) },
-								   { MAKELONG(STD_HELP, ImageListID), IDM_INFO, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Info")) } };
+TBBUTTON tbButtons[numButtons] = 
+{
+	{ MAKELONG(STD_UNDO,   ImageListID), IDM_UP,   TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Back"))      },
+	{ MAKELONG(STD_COPY,   ImageListID), IDM_COPY, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Copy"))      },
+	{ MAKELONG(STD_DELETE, ImageListID), IDM_DEL,  TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Delete"))    },
+	{ MAKELONG(STD_CUT,    ImageListID), IDM_CUT,  TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Cut"))       },
+	{ MAKELONG(STD_PASTE,  ImageListID), IDM_PASTE,TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Paste"))     },
+	{ MAKELONG(STD_HELP,   ImageListID), IDM_INFO, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Info"))      },
+	{ MAKELONG(STD_FILENEW,ImageListID), IDM_ARCH, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Arch Menu")) } 
+};
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,_In_ LPTSTR lpCmdLine,_In_ int nCmdShow)
 {
@@ -323,7 +327,7 @@ Information GetFileInform(TCHAR file[MAX_PATH])
 	else if(fd.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY)
 		wcscpy(fileInfo.type,_T("Directory")); 
 
-	if (wcscmp(fileInfo.type,clearString)==0)
+	if (wcscmp(fileInfo.type,_T(""))==0)
 		wcscpy(fileInfo.type,_T("File"));
 	
 	return fileInfo;
@@ -738,13 +742,47 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 	switch (message)
 	{
 	case WM_INITDIALOG:
+		static HWND rb_arch, rb_disarch, edit_path, edit_name, rb_ar, rb_fin, 
+			rb_huf, rb_splay, rb_zip;
+
+		CreateWindow(_T("button"), _T("Archivate"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON,
+			50, 8, 80, 20, hDlg, (HMENU)ID_RBARCH, hInst, NULL);
+		CreateWindow(_T("button"), _T("Disarchivate"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON,
+			200, 8, 100, 20, hDlg, (HMENU)ID_RBDISARCH, hInst, NULL);
+		
+		CreateWindow(_T("edit"), dir,WS_CHILD | WS_VISIBLE | ES_LEFT | WS_BORDER,
+			50, 39, 400, 20, hDlg, (HMENU)ID_EDITPATH, hInst, NULL);
+		CreateWindow(_T("edit"), _T(""), WS_CHILD | WS_VISIBLE | ES_CENTER | WS_BORDER,
+			70, 72, 380, 20, hDlg, (HMENU)ID_EDITPATH, hInst, NULL);
+
+		CreateWindow(_T("button"), _T("AR002"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON,
+			100, 102, 80, 20, hDlg, (HMENU)ID_RBAR, hInst, NULL);
+		CreateWindow(_T("button"), _T("FIN"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON,
+			100, 122, 80, 20, hDlg, (HMENU)ID_RBFIN, hInst, NULL);
+		CreateWindow(_T("button"), _T("HUFFMAN"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON,
+			100, 142, 100, 20, hDlg, (HMENU)ID_RBHUF, hInst, NULL);
+		CreateWindow(_T("button"), _T("SPLAY"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON,
+			100, 162, 80, 20, hDlg, (HMENU)ID_RBSPLAY, hInst, NULL);
+		CreateWindow(_T("button"), _T("ZIP"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON,
+			100, 182, 80, 20, hDlg, (HMENU)ID_RBZIP, hInst, NULL);
+
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
+		if (LOWORD(wParam) == IDCANCEL)
 		{
 			EndDialog(hDlg, LOWORD(wParam));
 			return (INT_PTR)TRUE;
+		}
+
+		if (ID_RBARCH<=LOWORD(wParam) && LOWORD(wParam)<=ID_RBDISARCH)
+		{
+			CheckRadioButton(hDlg, ID_RBARCH, ID_RBDISARCH, LOWORD(wParam));
+		}
+
+		if (ID_RBAR<=LOWORD(wParam) && LOWORD(wParam)<=ID_RBZIP)
+		{
+			CheckRadioButton(hDlg, ID_RBAR, ID_RBZIP, LOWORD(wParam));
 		}
 		break;
 	}
