@@ -80,7 +80,6 @@
     <None Include="..\..\..\..\packalg\FIN\DECOMP2.ASM" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\packalg\FIN\FIN.C" />
     <ClCompile Include="FinAlg.cpp" />
   </ItemGroup>
   <ItemGroup>

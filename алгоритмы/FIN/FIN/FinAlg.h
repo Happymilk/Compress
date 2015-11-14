@@ -18,7 +18,7 @@ namespace Fin
 	{
 	public:
 		FinAlg(void);
-		void Compress(FILE *pfIn, FILE *pfOut);
-		void Decompress(FILE *pfin, FILE *pfout);
+		FIN_API void Compress(FILE *pfIn, FILE *pfOut);
+		FIN_API void Decompress(FILE *pfin, FILE *pfout);
 	};
 }

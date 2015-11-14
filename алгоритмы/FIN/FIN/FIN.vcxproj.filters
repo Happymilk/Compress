@@ -23,9 +23,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\packalg\FIN\FIN.C">
-      <Filter>Файлы исходного кода</Filter>
-    </ClCompile>
     <ClCompile Include="FinAlg.cpp">
       <Filter>Файлы исходного кода</Filter>
     </ClCompile>

@@ -1,13 +1,14 @@
-﻿Сборка начата 09.11.2015 13:11:20.
-     1>Проект "D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\SPLAY\SPLAY\SPLAY.vcxproj" в узле 2 (целевые объекты Rebuild).
+﻿Сборка начата 15.11.2015 0:40:25.
+     1>Проект "D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\SPLAY\SPLAY\SPLAY.vcxproj" в узле 6 (целевые объекты Rebuild).
      1>ClCompile:
          D:\MS Visual\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D SPLAY_EXPORTS /D _CRT_SECURE_NO_WARNINGS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt SplayAlg.cpp
          SplayAlg.cpp
        Link:
-         D:\MS Visual\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\SPLAY\Debug\SPLAY.dll" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\SPLAY\Debug\SPLAY.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\SPLAY\Debug\SPLAY.lib" /MACHINE:X86 /DLL Debug\SplayAlg.obj
-         SPLAY.vcxproj -> D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\SPLAY\Debug\SPLAY.dll
+         D:\MS Visual\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\SPLAY.dll" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\SPLAY.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\SPLAY.lib" /MACHINE:X86 /DLL Debug\SplayAlg.obj
+            Создается библиотека D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\SPLAY.lib и объект D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\SPLAY.exp
+         SPLAY.vcxproj -> D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\SPLAY.dll
      1>Построение проекта "D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\SPLAY\SPLAY\SPLAY.vcxproj" завершено (целевые объекты Rebuild).
 
 Построение успешно завершено.
 
-Затраченное время: 00:00:00.99
+Затраченное время: 00:00:00.70

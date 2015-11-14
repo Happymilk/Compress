@@ -98,8 +98,8 @@ namespace AR002
 		int make_tree(int nparm, ushort freqparm[],	uchar lenparm[], ushort codeparm[]);
 	public:
 		AR002Alg(void);
-		void encode(void);
-		void decode_start(void);
-		void decode(uint count, uchar text[]);
+		AR002_API void encode(void);
+		AR002_API void decode_start(void);
+		AR002_API void decode(uint count, uchar text[]);
 	};
 }

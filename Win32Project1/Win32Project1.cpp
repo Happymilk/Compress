@@ -9,15 +9,7 @@
 #include <shellapi.h>
 #include <time.h>
 #include <math.h>
-#include "AR002\AR002\AR002Alg.h"
-#include "FIN\FIN\FinAlg.h"
-#include "HUF\HUF\Huf.h"
-#include "SPLAY\SPLAY\SplayAlg.h"
 
-using namespace AR002;
-using namespace Fin;
-using namespace Huf;
-using namespace Splay;
 using namespace std;
 
 struct Information
@@ -55,10 +47,12 @@ const int bitmapSize = 16;
 DWORD Drivers, sum1=0, sum2=0;
 int sel,k=0,y=9;
 TCHAR c,*ls;
+
 TCHAR buf1[MAX_PATH], cm_dir_from[MAX_PATH], cm_dir_to[MAX_PATH], 
 	cm_dir_to_[MAX_PATH],cm_dir_from_[MAX_PATH],path[MAX_PATH],
 	_dir[MAX_PATH],_dir1[MAX_PATH],buff[MAX_PATH],tempdir[MAX_PATH],copyBuffer[MAX_PATH];
 LPCTSTR s;
+
 bool isCutting = FALSE;
 
 TBBUTTON tbButtons[numButtons] = 
@@ -187,53 +181,61 @@ void AddColToListView(TCHAR *st, int sub, int size)
 	ListView_InsertColumn(hListView_1, sub, &lvc);
 }
  
-int i;
+int i,i_dirs,i_files,i_all;
 BOOL InitListViewImageLists(HWND hWndListView,int size, TCHAR c_dir[MAX_PATH])
 {
 	HIMAGELIST hSmall;
 	SHFILEINFO lp;
 	WIN32_FIND_DATA FindFileData;
 	HANDLE hFind;
-	TCHAR buf1[MAX_PATH];
+	TCHAR buf1[MAX_PATH],buffer[MAX_PATH];
 	DWORD num;
 
 	hSmall = ImageList_Create(GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON), ILC_MASK|ILC_COLOR32, size+2, 1);
-	hFind = FindFirstFile(c_dir, &FindFileData);
-
-	if (hFind == INVALID_HANDLE_VALUE)
-		MessageBox(0,_T("Not found"), _T("Error"),  MB_OK |MB_ICONWARNING);
-	else
+	
+	int LVcounter=0;
+	for (int j=0;j<size;j++)
 	{
-		//присваеваем атрибуты
-		do 
+		hFind = FindFirstFile(c_dir, &FindFileData);
+
+		if (hFind != INVALID_HANDLE_VALUE)
 		{
-			if(wcscmp(FindFileData.cFileName, _T("."))==0) //если диск
-			{		 
-				wcscpy(buf1, c_dir);
-				wcscat(buf1, FindFileData.cFileName);
-				SHGetFileInfo(_T(""),FILE_ATTRIBUTE_DEVICE,&lp,sizeof(lp),SHGFI_ICONLOCATION|SHGFI_ICON|SHGFI_SMALLICON);
-				ImageList_AddIcon(hSmall,lp.hIcon);
-				DestroyIcon(lp.hIcon);
-			}
-			if(wcscmp(FindFileData.cFileName,_T(".."))==0)//если фаилы,папки
+			do //присваеваем атрибуты
 			{
-				wcscpy(buf1, c_dir);
-				wcscat(buf1,FindFileData.cFileName);
-				SHGetFileInfo(_T(""),FILE_ATTRIBUTE_DIRECTORY,&lp,sizeof(lp),SHGFI_ICONLOCATION|SHGFI_ICON|SHGFI_SMALLICON);
-				ImageList_AddIcon(hSmall,lp.hIcon);
-				DestroyIcon(lp.hIcon);
-			}
-			//присваеваем иконки
-			wcscpy(buf1, c_dir);
-			buf1[wcslen(buf1)-1] = 0;
-			wcscat(buf1,FindFileData.cFileName);		 
-			num=GetFileAttributes(buf1);
-			SHGetFileInfo(buf1,num,&lp,sizeof(lp),SHGFI_ICONLOCATION|SHGFI_ICON|SHGFI_SMALLICON);
-			ImageList_AddIcon(hSmall,lp.hIcon);
-			DestroyIcon(lp.hIcon);
-		} while (FindNextFile(hFind, &FindFileData) != 0);
+				ListView_GetItemText(hWndListView,LVcounter,0,buffer,MAX_PATH);
+				if (wcscmp(FindFileData.cFileName,buffer)==0)
+				{
+					if(wcscmp(FindFileData.cFileName, _T("."))==0) //если диск
+					{		 
+						wcscpy(buf1, c_dir);
+						wcscat(buf1, FindFileData.cFileName);
+						SHGetFileInfo(_T(""),FILE_ATTRIBUTE_DEVICE,&lp,sizeof(lp),SHGFI_ICONLOCATION|SHGFI_ICON|SHGFI_SMALLICON);
+						ImageList_AddIcon(hSmall,lp.hIcon);
+						DestroyIcon(lp.hIcon);
+					}
+					if(wcscmp(FindFileData.cFileName,_T(".."))==0)//если фаилы,папки
+					{
+						wcscpy(buf1, c_dir);
+						wcscat(buf1,FindFileData.cFileName);
+						SHGetFileInfo(_T(""),FILE_ATTRIBUTE_DIRECTORY,&lp,sizeof(lp),SHGFI_ICONLOCATION|SHGFI_ICON|SHGFI_SMALLICON);
+						ImageList_AddIcon(hSmall,lp.hIcon);
+						DestroyIcon(lp.hIcon);
+					}
+					//присваеваем иконки
+					wcscpy(buf1, c_dir);
+					buf1[wcslen(buf1)-1] = 0;
+					wcscat(buf1,FindFileData.cFileName);		 
+					num=GetFileAttributes(buf1);
+					SHGetFileInfo(buf1,num,&lp,sizeof(lp),SHGFI_ICONLOCATION|SHGFI_ICON|SHGFI_SMALLICON);
+					ImageList_AddIcon(hSmall,lp.hIcon);
+					DestroyIcon(lp.hIcon);
+					LVcounter++;
+					break;
+				}
+			} while (FindNextFile(hFind, &FindFileData) != 0);
 		
-		FindClose(hFind);
+			FindClose(hFind);
+		}
 	}
 	ListView_SetImageList(hWndListView, hSmall, LVSIL_SMALL);
 
@@ -260,31 +262,51 @@ void FindFile(HWND hList, TCHAR c_dir[MAX_PATH])
 {
 	WIN32_FIND_DATA FindFileData;
 	HANDLE hFind;
+	BOOL firstSearch=true;
 
 	SendMessage(hList, LVM_DELETEALLITEMS, (WPARAM)0,(LPARAM)0);
 	
-	i=0;	
-	hFind = FindFirstFile(c_dir, &FindFileData);
-	
-	if(hFind == INVALID_HANDLE_VALUE)
-		MessageBox(0,_T("Not found"), _T("Error"),  MB_OK |MB_ICONERROR);
-	else
+	i=i_dirs=i_files=i_all=0;
+	for (int j=0;j<2;j++)
 	{
-		do
+		hFind = FindFirstFile(c_dir, &FindFileData);
+	
+		if(hFind == INVALID_HANDLE_VALUE)
 		{
-			if(FindFileData.cFileName != _T("."))
+			if (firstSearch)
+				MessageBox(0,_T("Not found"), _T("Error"),  MB_OK |MB_ICONERROR);
+		}
+		else
+		{
+			do
 			{
-				if((FILE_ATTRIBUTE_DIRECTORY & GetFileAttributes(FindFileData.cFileName)) != FILE_ATTRIBUTE_DIRECTORY)
-					View_List(_T("file"),hList,i,1); 
-				else 
-					View_List(_T("directory"),hList,i,1);
-				View_List(FindFileData.cFileName,hList,i,0);//выз. ф-ция Viev_List передаем туда наиденый фаил ,и HWND ListBox и итератор i++,
-				++i;
-			}
-		} while (FindNextFile(hFind, &FindFileData) != 0);
+				if(wcscmp(FindFileData.cFileName,_T("."))!=0 && wcscmp(FindFileData.cFileName,_T(".."))!=0)
+				{
+					if (firstSearch)
+					{
+						if((FindFileData.dwFileAttributes == 16)||(FindFileData.dwFileAttributes == 17))
+						{
+							View_List(_T("directory"),hList,i,1);
+							View_List(FindFileData.cFileName,hList,i,0);//выз. ф-ция Viev_List передаем туда наиденый фаил ,и HWND ListBox и итератор i++,
+							i++;
+						}
+					}
+					else
+					{
+						if(FindFileData.dwFileAttributes == 32)
+						{	
+							View_List(_T("file"),hList,i,1); 
+							View_List(FindFileData.cFileName,hList,i,0);//выз. ф-ция Viev_List передаем туда наиденый фаил ,и HWND ListBox и итератор i++,
+							i++;
+						}
+					}
+				}
+			} while (FindNextFile(hFind, &FindFileData) != 0);
 		
-		FindClose(hFind); //закрываем работу поиска фаилов
-		InitListViewImageLists(hList,i, c_dir);//тут уже передаем HWND ListBox, и кол-во фаилов
+			FindClose(hFind); //закрываем работу поиска фаилов
+			InitListViewImageLists(hList,i,c_dir);//тут уже передаем HWND ListBox, и кол-во фаилов
+			firstSearch=false;
+		}
 	}
 }
 
@@ -362,6 +384,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     			{
 					Delete_File(cm_dir_from, dir, copy_buf1);
 					SendMessage(hListView_1,LVM_REDRAWITEMS,0,0);
+					FindFile(hListView_1,dir);
     				return 0;
     			}
 				case IDM_CUT:
@@ -392,6 +415,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						isCutting=FALSE;
 						SendMessage(hListView_1,LVM_REDRAWITEMS,0,0);
 					}
+					FindFile(hListView_1,dir);
 					return 0;
 				}
 				case IDM_UP:
@@ -783,10 +807,13 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 			CheckRadioButton(hDlg, ID_RBARCH, ID_RBDISARCH, LOWORD(wParam));
 		}
 
-		if (ID_RBAR<=LOWORD(wParam) && LOWORD(wParam)<=ID_RBZIP)
-		{
-			CheckRadioButton(hDlg, ID_RBAR, ID_RBZIP, LOWORD(wParam));
-		}
+		/*	HMODULE hDll;
+	void (*DLLmainSplay)(int, char);
+	hDll = LoadLibrary(_T("data/SPLAY.dll"));
+	if(!hDll)
+		MessageBox(0,_T("Not found"), _T("Error"),  MB_OK |MB_ICONWARNING);
+	DLLmainSplay = (void (*)(int,char))GetProcAddress(hDll,"mainSplay");*/
+
 		break;
 	}
 	return (INT_PTR)FALSE;

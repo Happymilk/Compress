@@ -28,12 +28,11 @@ namespace Huf
 		void compression_report();
 		void get_frequency_count();
 		void reheap();
-
 		void build_decomp_tree();
 		void decompress_image();
 	public:
 		HufAlg(void);
-		void Compress(int count, char *args[]);
-		void Decompress(int count, char *args[]);
+		HUF_API void Compress(int count, char *args[]);
+		HUF_API void Decompress(int count, char *args[]);
 	};
 }
