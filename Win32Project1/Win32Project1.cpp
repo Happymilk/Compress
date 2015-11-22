@@ -11,6 +11,11 @@
 #include <math.h>
 #include <stdint.h>
 
+#include "AR002Alg.h"
+#include "FinAlg.h"
+#include "Huf.h"
+#include "SplayAlg.h"
+
 using namespace std;
 
 struct Information
@@ -155,18 +160,11 @@ TBBUTTON tbButtons[numButtons] =
 
 HMODULE hSplayDll,hHufDll,hFinDll,hAr002Dll,hZipDll;
 
-void (*DllSplayMain)(int, char*);
-void (*DllHufCompress)(int, char*);
-void (*DllHufDecompress)(int, char*);
-void (*DllFinCompress)(FILE, FILE);
-void (*DllFinDecompress)(FILE, FILE);
-
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,_In_ LPTSTR lpCmdLine,_In_ int nCmdShow)
 {
 	MSG Msg;
 	HWND hWnd;
 	HACCEL hAccelTable;
-	
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
@@ -176,22 +174,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance
 	LoadString(hInstance, IDC_WIN32PROJECT1, szWindowClass, MAX_LOADSTRING);
 	SendMessage(hToolBar, TB_SETSTATE, (WPARAM)IDM_PASTE, (LPARAM)MAKELONG(0,0));
 	MyRegisterClass(hInstance);
-
-	/*	AR002_API void encode(void);
-		AR002_API void decode_start(void);
-		AR002_API void decode(uint count, uchar text[]);*/
-
-	hSplayDll = LoadLibrary(_T("data/SPLAY.dll"));
-	hHufDll = LoadLibrary(_T("data/HUF.dll"));
-	hFinDll = LoadLibrary(_T("data/FIN.dll"));
-	hAr002Dll = LoadLibrary(_T("data/AR002.dll"));
-	hZipDll = LoadLibrary(_T("data/ZIP.dll"));
-
-	DllSplayMain = (void(*)(int, char*))GetProcAddress(hSplayDll,"mainSplay");
-	DllHufCompress = (void(*)(int, char*))GetProcAddress(hHufDll,"Compress");
-	DllHufDecompress = (void(*)(int, char*))GetProcAddress(hHufDll,"Decompress");
-	DllFinCompress = (void(*)(FILE, FILE))GetProcAddress(hFinDll,"Compress");
-	DllFinDecompress = (void(*)(FILE, FILE))GetProcAddress(hFinDll,"Decompress");
 
 	if (!InitInstance (hInstance, nCmdShow))
 	{
@@ -986,6 +968,7 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 		if (LOWORD(wParam) == IDCANCEL)
 		{
 			EndDialog(hDlg, LOWORD(wParam));
+			SendMessage(hListView_1,LVM_REDRAWITEMS,0,0);
 			return (INT_PTR)TRUE;
 		}
 
@@ -1016,20 +999,24 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 			}
 			if (wcscmp(option,_T("SPLAY"))==0)
 			{
-				char* args[4];
+				char *args[4];
+				char *tempFilePath=(char*)malloc(MAX_PATH);
 				char *tempCharStr=(char*)malloc(MAX_PATH);
 				TCHAR nameStr[MAX_PATH],pathStr[MAX_PATH],temp[MAX_PATH];
 
 				if(IsDlgButtonChecked(hDlg,ID_RBARCH))
 				{
-					args[1]="";
+					args[0]="";
 
 					index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
 					if (index!=-1)
 					{
 						ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
 						wcstombs(tempCharStr,temp,MAX_PATH);
-						args[2]=tempCharStr;
+						wcstombs(tempFilePath,dir,MAX_PATH);
+						tempFilePath[strlen(tempFilePath)-1]=0;
+						strcat(tempFilePath,tempCharStr);
+						args[1]=tempFilePath;
 
 						wcscpy(nameStr,L"");
 						wcscpy(pathStr,L"");
@@ -1040,10 +1027,12 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 							wcscat(pathStr,nameStr);
 							wcscat(pathStr,L".splay");
 							wcstombs(tempCharStr,pathStr,MAX_PATH);
-							args[3]=tempCharStr;
+							args[2]=tempCharStr;
 
-							DllSplayMain(3,*args);
+							SplaY::SplayAlg sAlg;
+							sAlg.mainSplay(3,args);
 							MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+							FindFile(hListView_1,dir);
 						}
 						else
 							MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
@@ -1054,6 +1043,7 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				else
 					if(IsDlgButtonChecked(hDlg,ID_RBDISARCH))
 					{
+						args[0]="X";
 						args[1]="X";
 
 						index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
@@ -1061,7 +1051,10 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 						{
 							ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
 							wcstombs(tempCharStr,temp,MAX_PATH);
-							args[2]=tempCharStr;
+							wcstombs(tempFilePath,dir,MAX_PATH);
+							tempFilePath[strlen(tempFilePath)-1]=0;
+							strcat(tempFilePath,tempCharStr);
+							args[2]=tempFilePath;
 
 							wcscpy(nameStr,L"");
 							wcscpy(pathStr,L"");
@@ -1069,12 +1062,41 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 							GetWindowText(edit_path,pathStr,MAX_PATH);
 							if (nameStr!=L"" && pathStr!=L"")
 							{
-								wcscat(pathStr,nameStr);
-								wcstombs(tempCharStr,pathStr,MAX_PATH);
-								args[2]=tempCharStr;
-					
-								DllSplayMain(3,*args);
-								MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+								TCHAR typestr[255],temp[255];
+								int ending=0;
+								BOOL flag=false;
+								wcscpy(typestr,nameStr);
+								reverseString(typestr,temp);
+								while((ending<wcslen(temp)))
+								{
+									if(!flag)
+									{
+										if(temp[ending]=='.')
+										{
+											temp[ending]=NULL;
+											flag=true;
+										}
+									}
+									else
+										temp[ending]=NULL;
+									ending++;
+								}
+								wcscpy(typestr,temp);
+								reverseString(typestr,temp);
+								if(wcscmp(temp,_T("splay"))==0)
+								{
+									nameStr[wcslen(nameStr)-6]=0;
+									wcscat(pathStr,nameStr);
+									wcstombs(tempCharStr,pathStr,MAX_PATH);
+									args[3]=tempCharStr;
+
+									SplaY::SplayAlg sAlg;
+									sAlg.mainSplay(4,args);
+									MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+									FindFile(hListView_1,dir);
+								}
+								else
+									MessageBox(0,_T("Input file must be .splay"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
 							}
 							else
 								MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
