@@ -118,8 +118,7 @@ INT_PTR CALLBACK About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK InfoWindow(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK Archivation(HWND, UINT, WPARAM, LPARAM);
 
-TCHAR szWindowClass[MAX_LOADSTRING],szTitle[MAX_LOADSTRING],dir[MAX_PATH],
-	dir1[MAX_PATH],copy_buf1[MAX_PATH];
+TCHAR szWindowClass[MAX_LOADSTRING],szTitle[MAX_LOADSTRING],dir[MAX_PATH],dir1[MAX_PATH],copy_buf1[MAX_PATH];
 HINSTANCE hInst;
 HWND hWndChild = NULL;
 HIMAGELIST g_hImageList = NULL;
@@ -134,12 +133,11 @@ const DWORD buttonStyles = BTNS_AUTOSIZE;
 const int bitmapSize = 16;
 
 DWORD Drivers, sum1=0, sum2=0;
-int sel,k=0,y=9;
+int sel,k=0,y=9,index=-1;
 TCHAR c,*ls;
 
-TCHAR buf1[MAX_PATH], cm_dir_from[MAX_PATH], cm_dir_to[MAX_PATH], 
-	cm_dir_to_[MAX_PATH],cm_dir_from_[MAX_PATH],path[MAX_PATH],
-	_dir[MAX_PATH],_dir1[MAX_PATH],buff[MAX_PATH],tempdir[MAX_PATH],copyBuffer[MAX_PATH];
+TCHAR buf1[MAX_PATH],cm_dir_from[MAX_PATH],cm_dir_to[MAX_PATH],cm_dir_to_[MAX_PATH],cm_dir_from_[MAX_PATH],
+	path[MAX_PATH],_dir[MAX_PATH],_dir1[MAX_PATH],buff[MAX_PATH],tempdir[MAX_PATH],copyBuffer[MAX_PATH];
 LPCTSTR s;
 
 bool isCutting = FALSE;
@@ -155,11 +153,20 @@ TBBUTTON tbButtons[numButtons] =
 	{ MAKELONG(STD_FILENEW,ImageListID), IDM_ARCH, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Arch Menu")) } 
 };
 
+HMODULE hSplayDll,hHufDll,hFinDll,hAr002Dll,hZipDll;
+
+void (*DllSplayMain)(int, char*);
+void (*DllHufCompress)(int, char*);
+void (*DllHufDecompress)(int, char*);
+void (*DllFinCompress)(FILE, FILE);
+void (*DllFinDecompress)(FILE, FILE);
+
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,_In_ LPTSTR lpCmdLine,_In_ int nCmdShow)
 {
 	MSG Msg;
 	HWND hWnd;
 	HACCEL hAccelTable;
+	
 
 	UNREFERENCED_PARAMETER(hPrevInstance);
 	UNREFERENCED_PARAMETER(lpCmdLine);
@@ -169,6 +176,22 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance
 	LoadString(hInstance, IDC_WIN32PROJECT1, szWindowClass, MAX_LOADSTRING);
 	SendMessage(hToolBar, TB_SETSTATE, (WPARAM)IDM_PASTE, (LPARAM)MAKELONG(0,0));
 	MyRegisterClass(hInstance);
+
+	/*	AR002_API void encode(void);
+		AR002_API void decode_start(void);
+		AR002_API void decode(uint count, uchar text[]);*/
+
+	hSplayDll = LoadLibrary(_T("data/SPLAY.dll"));
+	hHufDll = LoadLibrary(_T("data/HUF.dll"));
+	hFinDll = LoadLibrary(_T("data/FIN.dll"));
+	hAr002Dll = LoadLibrary(_T("data/AR002.dll"));
+	hZipDll = LoadLibrary(_T("data/ZIP.dll"));
+
+	DllSplayMain = (void(*)(int, char*))GetProcAddress(hSplayDll,"mainSplay");
+	DllHufCompress = (void(*)(int, char*))GetProcAddress(hHufDll,"Compress");
+	DllHufDecompress = (void(*)(int, char*))GetProcAddress(hHufDll,"Decompress");
+	DllFinCompress = (void(*)(FILE, FILE))GetProcAddress(hFinDll,"Compress");
+	DllFinDecompress = (void(*)(FILE, FILE))GetProcAddress(hFinDll,"Decompress");
 
 	if (!InitInstance (hInstance, nCmdShow))
 	{
@@ -335,26 +358,15 @@ void View_List(TCHAR *buf,HWND hList,int i, int j)
 {
 	LVITEM lvItem;
 	
-	if (j<1)
-	{
-		lvItem.mask = LVIF_IMAGE|LVIF_TEXT;
-		lvItem.state = 0;
-		lvItem.stateMask = 0;
-		lvItem.iItem = i;
-		lvItem.iImage=i;
-		lvItem.iSubItem = j;
-		lvItem.pszText = buf;
-		lvItem.cchTextMax = sizeof(buf);
-	}
-	else
-	{
-		lvItem.mask = LVIF_TEXT;
-		lvItem.stateMask = 0;
-		lvItem.iItem = i;
-		lvItem.iSubItem = j;
-		lvItem.pszText = buf;
-		lvItem.cchTextMax = sizeof(buf);
-	}
+	lvItem.mask = LVIF_IMAGE|LVIF_TEXT;
+	lvItem.state = 0;
+	lvItem.stateMask = 0;
+	lvItem.iItem = i;
+	lvItem.iImage=i;
+	lvItem.iSubItem = j;
+	lvItem.pszText = buf;
+	lvItem.cchTextMax = sizeof(buf);
+
 	ListView_InsertItem(hList, &lvItem);
 }
  
@@ -505,7 +517,7 @@ Information GetFileInform(TCHAR file[MAX_PATH])
 
 	if(fd.dwFileAttributes == FILE_ATTRIBUTE_DEVICE)
 		wcscpy(fileInfo.type,_T("Device"));
-	else if(fd.dwFileAttributes == FILE_ATTRIBUTE_NORMAL)
+	else if(fd.dwFileAttributes == 32)
 		wcscpy(fileInfo.type,_T("File"));
 	else if(fd.dwFileAttributes == FILE_ATTRIBUTE_SYSTEM)
 		wcscpy(fileInfo.type,_T("System file"));
@@ -687,8 +699,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				// Копируем строку в буфер из ячейки ListView (pnmLV->iItem - номер строки;
 				// pnmLV->iSubItem - номер столбца)
+				wcscpy(buf1,_T(""));
 				ListView_GetItemText(lpnmHdr->hwndFrom, pnmLV->iItem, pnmLV->iSubItem, buf1, MAX_PATH);
-
 				if (lpnmHdr->idFrom == ID_LISTVIEW_1)
 				{			
 					k=0;
@@ -768,7 +780,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 							3, 33+y, 50, 110, hwnd, (HMENU) ID_COMBOBOX_1, hInst, NULL);
 			hListView_1 =CreateWindow(WC_LISTVIEW, NULL,LVS_REPORT|WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|LVS_AUTOARRANGE,
 							0, 60+y+12, 900, 500, hwnd,	(HMENU) ID_LISTVIEW_1, hInst, NULL);
-            ls = buff;
+			ListView_SetExtendedListViewStyle(hListView_1,LVS_EX_FULLROWSELECT);
+
+			ls = buff;
 
             while (*ls)
             {
@@ -909,10 +923,10 @@ INT_PTR CALLBACK InfoWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 						  50, 30, 215, 16, hDlg, (HMENU)ID_LABELTYPE, hInst, NULL);
 		FileTimeToString(info.crtd,stringCrtd);
 		LabelCrtd =CreateWindow(_T("static"), stringCrtd, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-						  80, 70, 215, 16, hDlg, (HMENU)ID_LABELCRTD, hInst, NULL);
+						  80, 72, 215, 16, hDlg, (HMENU)ID_LABELCRTD, hInst, NULL);
 		FileTimeToString(info.last,stringLast);
 		LabelLast =CreateWindow(_T("static"), stringLast, WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-						  80, 90, 215, 16, hDlg, (HMENU)ID_LABELLAST, hInst, NULL);
+						  80, 95, 215, 16, hDlg, (HMENU)ID_LABELLAST, hInst, NULL);
 		return (INT_PTR)TRUE;
 
 	case WM_COMMAND:
@@ -933,19 +947,30 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 	{
 	case WM_INITDIALOG:
 		static HWND rb_arch, rb_disarch, edit_path, edit_name, cb_alg;
+		TCHAR name[MAX_PATH],archive_path[MAX_PATH];
 
 		rb_arch=CreateWindow(_T("button"), _T("Archivate"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON,
 			50, 8, 80, 20, hDlg, (HMENU)ID_RBARCH, hInst, NULL);
 		rb_disarch=CreateWindow(_T("button"), _T("Disarchivate"),WS_CHILD|WS_VISIBLE|BS_RADIOBUTTON,
 			135, 8, 100, 20, hDlg, (HMENU)ID_RBDISARCH, hInst, NULL);
 		
-		edit_path=CreateWindow(_T("edit"), dir,WS_CHILD | WS_VISIBLE | ES_LEFT | WS_BORDER,
+		wcscpy(archive_path,dir);
+		archive_path[wcslen(archive_path)-1]=0;
+		edit_path=CreateWindow(_T("edit"), archive_path,WS_CHILD | WS_VISIBLE | ES_LEFT | WS_BORDER,
 			50, 39, 400, 20, hDlg, (HMENU)ID_EDITPATH, hInst, NULL);
-		edit_name=CreateWindow(_T("edit"), _T(""), WS_CHILD | WS_VISIBLE | ES_CENTER | WS_BORDER,
-			70, 72, 380, 20, hDlg, (HMENU)ID_EDITNAME, hInst, NULL);
 
-		cb_alg =CreateWindow(_T("ComboBox"), NULL,	WS_CHILD|WS_VISIBLE|WS_VSCROLL|CBS_DROPDOWN,
-							320, 8, 100, 110, hDlg, (HMENU) ID_COMBOBOXALG, hInst, NULL);
+		wcscpy(name,L"");
+		index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+		ListView_GetItemText(hListView_1,index,0,name,MAX_PATH);
+		if (name!=L"")
+			edit_name=CreateWindow(_T("edit"), name, WS_CHILD | WS_VISIBLE | ES_CENTER | WS_BORDER,
+				70, 72, 380, 20, hDlg, (HMENU)ID_EDITNAME, hInst, NULL);
+		else
+			edit_name=CreateWindow(_T("edit"), _T(""), WS_CHILD | WS_VISIBLE | ES_CENTER | WS_BORDER,
+				70, 72, 380, 20, hDlg, (HMENU)ID_EDITNAME, hInst, NULL);
+
+		cb_alg =CreateWindow(_T("ComboBox"), NULL,	WS_CHILD|WS_VISIBLE|WS_VSCROLL|CBS_DROPDOWNLIST,
+							320, 8, 130, 110, hDlg, (HMENU) ID_COMBOBOXALG, hInst, NULL);
 		
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("ZIP"));
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("AR002"));
@@ -969,13 +994,98 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 			CheckRadioButton(hDlg, ID_RBARCH, ID_RBDISARCH, LOWORD(wParam));
 		}
 
-		/*	HMODULE hDll;
-	void (*DLLmainSplay)(int, char);
-	hDll = LoadLibrary(_T("data/SPLAY.dll"));
-	if(!hDll)
-		MessageBox(0,_T("Not found"), _T("Error"),  MB_OK |MB_ICONWARNING);
-	DLLmainSplay = (void (*)(int,char))GetProcAddress(hDll,"mainSplay");*/
+		if (LOWORD(wParam)==ID_START)
+		{
+			TCHAR option[MAX_PATH],outFile[MAX_PATH];
+			GetDlgItemText(hDlg,ID_COMBOBOXALG,option,MAX_PATH);
+			if (wcscmp(option,_T("ZIP"))==0)
+			{
+				MessageBox(0,_T("ZIIIIIP!"), _T(""),MB_OK|MB_ICONASTERISK);
+			}
+			if (wcscmp(option,_T("AR002"))==0)
+			{
+				MessageBox(0,_T("ar!"), _T(""),MB_OK|MB_ICONASTERISK);
+			}
+			if (wcscmp(option,_T("FIN"))==0)
+			{
+				MessageBox(0,_T("fin!"), _T(""),MB_OK|MB_ICONASTERISK);
+			}
+			if (wcscmp(option,_T("HUFFMAN"))==0)
+			{
+				MessageBox(0,_T("huf!"), _T(""),MB_OK|MB_ICONASTERISK);
+			}
+			if (wcscmp(option,_T("SPLAY"))==0)
+			{
+				char* args[4];
+				char *tempCharStr=(char*)malloc(MAX_PATH);
+				TCHAR nameStr[MAX_PATH],pathStr[MAX_PATH],temp[MAX_PATH];
 
+				if(IsDlgButtonChecked(hDlg,ID_RBARCH))
+				{
+					args[1]="";
+
+					index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+					if (index!=-1)
+					{
+						ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+						wcstombs(tempCharStr,temp,MAX_PATH);
+						args[2]=tempCharStr;
+
+						wcscpy(nameStr,L"");
+						wcscpy(pathStr,L"");
+						GetWindowText(edit_name,nameStr,MAX_PATH);	
+						GetWindowText(edit_path,pathStr,MAX_PATH);
+						if (nameStr!=L"" && pathStr!=L"")
+						{
+							wcscat(pathStr,nameStr);
+							wcscat(pathStr,L".splay");
+							wcstombs(tempCharStr,pathStr,MAX_PATH);
+							args[3]=tempCharStr;
+
+							DllSplayMain(3,*args);
+							MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+						}
+						else
+							MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+				}
+				else
+					if(IsDlgButtonChecked(hDlg,ID_RBDISARCH))
+					{
+						args[1]="X";
+
+						index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+						if (index!=-1)
+						{
+							ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+							wcstombs(tempCharStr,temp,MAX_PATH);
+							args[2]=tempCharStr;
+
+							wcscpy(nameStr,L"");
+							wcscpy(pathStr,L"");
+							GetWindowText(edit_name,nameStr,MAX_PATH);	
+							GetWindowText(edit_path,pathStr,MAX_PATH);
+							if (nameStr!=L"" && pathStr!=L"")
+							{
+								wcscat(pathStr,nameStr);
+								wcstombs(tempCharStr,pathStr,MAX_PATH);
+								args[2]=tempCharStr;
+					
+								DllSplayMain(3,*args);
+								MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+							}
+							else
+								MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+						}
+						else
+							MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose method"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+			}
+		}
 		break;
 	}
 	return (INT_PTR)FALSE;
