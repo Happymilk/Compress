@@ -15,6 +15,8 @@
 #include "FinAlg.h"
 #include "Huf.h"
 #include "SplayAlg.h"
+#include "zip.h"
+#include "unzip.h"
 
 using namespace std;
 
@@ -750,7 +752,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						  0, 45+y, 900, 16,hwnd, (HMENU)ID_LABEL_2, hInst, NULL);
 			hLabel_3 =CreateWindow(_T("static"), _T("way1"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 3, 57+y, 900, 16,
 						  hwnd, (HMENU)ID_LABEL_3, hInst, NULL);
-			hComboBox_1 =CreateWindow(_T("ComboBox"), NULL,	WS_CHILD|WS_VISIBLE|WS_VSCROLL|CBS_DROPDOWN|CBS_SORT,
+			hComboBox_1 =CreateWindow(_T("ComboBox"), NULL,	WS_CHILD|WS_VISIBLE|WS_VSCROLL|CBS_DROPDOWNLIST|CBS_SORT,
 							3, 33+y, 50, 110, hwnd, (HMENU) ID_COMBOBOX_1, hInst, NULL);
 			hListView_1 =CreateWindow(WC_LISTVIEW, NULL,LVS_REPORT|WS_CHILD|WS_VISIBLE|WS_CLIPSIBLINGS|LVS_AUTOARRANGE,
 							0, 60+y+12, 900, 500, hwnd,	(HMENU) ID_LISTVIEW_1, hInst, NULL);
@@ -914,146 +916,6 @@ INT_PTR CALLBACK InfoWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	return (INT_PTR)FALSE;
 }
 
-/*void mainZip(char *args[])
-{
-	//Open the ZIP archive
-    int err = 0;
-    zip *z = zip_open(args[2], 0, &err);
-
-    //Search for the file of given name
-    const char *name = args[1];
-    struct zip_stat st;
-    zip_stat_init(&st);
-    zip_stat(z, name, 0, &st);
-
-    //Alloc memory for its uncompressed contents
-    char *contents = new char[st.size];
-
-    //Read the compressed file
-    zip_file *f = zip_fopen(z, args[1], 0);
-    zip_fread(f, contents, st.size);
-    zip_fclose(f);
-
-    //And close the archive
-    zip_close(z);
-}
-
-int mainUnzip(int argsc, char *args[])
-{
-    if (argsc < 2 )
-    {
-        printf( "usage:\n%s {file to unzip}\n", args[ 0 ] );
-        return -1;
-    }
-
-    // Open the zip file
-    unzFile *zipfile = unzOpen( args[ 1 ] );
-    if ( zipfile == NULL )
-    {
-        printf( "%s: not found\n" );
-        return -1;
-    }
-
-    // Get info about the zip file
-    unz_global_info global_info;
-    if ( unzGetGlobalInfo( zipfile, &global_info ) != UNZ_OK )
-    {
-        printf( "could not read file global info\n" );
-        unzClose( zipfile );
-        return -1;
-    }
-
-    // Buffer to hold data read from the zip file.
-    char read_buffer[ READ_SIZE ];
-
-    // Loop to extract all files
-    uLong i;
-    for ( i = 0; i < global_info.number_entry; ++i )
-    {
-        // Get info about current file.
-        unz_file_info file_info;
-        char filename[ MAX_FILENAME ];
-        if ( unzGetCurrentFileInfo(
-            zipfile,
-            &file_info,
-            filename,
-            MAX_FILENAME,
-            NULL, 0, NULL, 0 ) != UNZ_OK )
-        {
-            printf( "could not read file info\n" );
-            unzClose( zipfile );
-            return -1;
-        }
-
-        // Check if this entry is a directory or file.
-        const size_t filename_length = strlen( filename );
-        if ( filename[ filename_length-1 ] == dir_delimter )
-        {
-            // Entry is a directory, so create it.
-            printf( "dir:%s\n", filename );
-            mkdir( filename );
-        }
-        else
-        {
-            // Entry is a file, so extract it.
-            printf( "file:%s\n", filename );
-            if ( unzOpenCurrentFile( zipfile ) != UNZ_OK )
-            {
-                printf( "could not open file\n" );
-                unzClose( zipfile );
-                return -1;
-            }
-
-            // Open a file to write out the data.
-            FILE *out = fopen( filename, "wb" );
-            if ( out == NULL )
-            {
-                printf( "could not open destination file\n" );
-                unzCloseCurrentFile( zipfile );
-                unzClose( zipfile );
-                return -1;
-            }
-
-            int error = UNZ_OK;
-            do    
-            {
-                error = unzReadCurrentFile( zipfile, read_buffer, READ_SIZE );
-                if ( error < 0 )
-                {
-                    printf( "error %d\n", error );
-                    unzCloseCurrentFile( zipfile );
-                    unzClose( zipfile );
-                    return -1;
-                }
-
-                // Write data to file.
-                if ( error > 0 )
-                {
-                    fwrite( read_buffer, error, 1, out ); // You should check return of fwrite...
-                }
-            } while ( error > 0 );
-
-            fclose( out );
-        }
-
-        unzCloseCurrentFile( zipfile );
-
-        // Go the the next entry listed in the zip file.
-        if ( ( i+1 ) < global_info.number_entry )
-        {
-            if ( unzGoToNextFile( zipfile ) != UNZ_OK )
-            {
-                printf( "cound not read next file\n" );
-                unzClose( zipfile );
-                return -1;
-            }
-        }
-    }
-
-    unzClose( zipfile );
-	return 0;
-}*/
-
 INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
@@ -1115,28 +977,20 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 			GetDlgItemText(hDlg,ID_COMBOBOXALG,option,MAX_PATH);
 			if (wcscmp(option,_T("ZIP"))==0)
 			{
-				MessageBox(0,_T("ZIIIIIP!"), _T(""),MB_OK|MB_ICONASTERISK);
-			}
-			if (wcscmp(option,_T("AR002"))==0)
-			{
-				char *args[3];
-				char *tempFilePath=(char*)malloc(MAX_PATH);
-				char *tempCharStr=(char*)malloc(MAX_PATH);
+				TCHAR *args[2], tempFilePath[MAX_PATH], tempCharStr[MAX_PATH];
 				TCHAR nameStr[MAX_PATH],pathStr[MAX_PATH],temp[MAX_PATH];
 
 				if(IsDlgButtonChecked(hDlg,ID_RBARCH))
 				{
-					args[0]="A";
-
 					index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
 					if (index!=-1)
 					{
 						ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
-						wcstombs(tempCharStr,temp,MAX_PATH);
-						wcstombs(tempFilePath,dir,MAX_PATH);
-						tempFilePath[strlen(tempFilePath)-1]=0;
-						strcat(tempFilePath,tempCharStr);
-						args[1]=tempFilePath;
+						wcscpy(tempCharStr,temp);
+						wcscpy(tempFilePath,dir);
+						tempFilePath[wcslen(tempFilePath)-1]=0;
+						wcscat(tempFilePath,tempCharStr);
+						args[0]=tempFilePath;
 
 						wcscpy(nameStr,L"");
 						wcscpy(pathStr,L"");
@@ -1145,26 +999,26 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 						if (nameStr!=L"" && pathStr!=L"")
 						{
 							wcscat(pathStr,nameStr);
-							wcscat(pathStr,L".ar002");
-							wcstombs(tempCharStr,pathStr,MAX_PATH);
-							args[2]=tempCharStr;
+							wcscat(pathStr,L".zip");
+							wcscpy(tempCharStr,pathStr);
+							args[1]=tempCharStr;
 
-							AR002::AR002Alg arAlg;
-							arAlg.mainAr(3,args);
-
+							HZIP hz = CreateZip(args[1],"");
+							ZipAdd(hz,temp, args[0]);
 							index=ListView_GetNextItem(hListView_1,index,LVIS_SELECTED|LVNI_BELOW);
 							while(index!=-1)
 							{
 								index=ListView_GetNextItem(hListView_1,index,LVIS_SELECTED|LVNI_BELOW);
 								ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
-								wcstombs(tempCharStr,temp,MAX_PATH);
-								wcstombs(tempFilePath,dir,MAX_PATH);
-								tempFilePath[strlen(tempFilePath)-1]=0;
-								strcat(tempFilePath,tempCharStr);
+								wcscpy(tempCharStr,temp);
+								wcscpy(tempFilePath,dir);
+								tempFilePath[wcslen(tempFilePath)-1]=0;
+								wcscat(tempFilePath,tempCharStr);
 								args[1]=tempFilePath;
 
-								arAlg.mainAr(3,args);
+								ZipAdd(hz,temp, args[0]);
 							}
+							CloseZip(hz);
 							MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
 							FindFile(hListView_1,dir);
 						}
@@ -1177,17 +1031,15 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 				else
 					if(IsDlgButtonChecked(hDlg,ID_RBDISARCH))
 					{
-						args[0]="X";
-
 						index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
 						if (index!=-1)
 						{
 							ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
-							wcstombs(tempCharStr,temp,MAX_PATH);
-							wcstombs(tempFilePath,dir,MAX_PATH);
-							tempFilePath[strlen(tempFilePath)-1]=0;
-							strcat(tempFilePath,tempCharStr);
-							args[1]=tempFilePath;
+							wcscpy(tempCharStr,temp);
+							wcscpy(tempFilePath,dir);
+							tempFilePath[wcslen(tempFilePath)-1]=0;
+							wcscat(tempFilePath,tempCharStr);
+							args[0]=tempFilePath;
 
 							wcscpy(nameStr,L"");
 							wcscpy(pathStr,L"");
@@ -1216,20 +1068,28 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 								}
 								wcscpy(typestr,temp);
 								reverseString(typestr,temp);
-								if(wcscmp(temp,_T("ar002"))==0)
+								if(wcscmp(temp,_T("zip"))==0)
 								{
-									nameStr[wcslen(nameStr)-6]=0;
-									wcscat(pathStr,nameStr);
-									wcstombs(tempCharStr,pathStr,MAX_PATH);
-									args[2]=tempCharStr;
+									nameStr[wcslen(nameStr)-4]=0;
+									wcscpy(tempCharStr,pathStr);
+									args[1]=tempCharStr;
 
-									AR002::AR002Alg arAlg;
-									arAlg.mainAr(3,args);
+									HZIP hz = OpenZip(args[0],"");
+									SetUnzipBaseDir(hz,args[1]);
+									ZIPENTRY ze; 
+									GetZipItem(hz,-1,&ze); 
+									int numitems=ze.index;
+									for (int i=0; i<numitems; i++)
+									{ 
+										GetZipItem(hz,i,&ze);
+										UnzipItem(hz,i,ze.name);
+									}
+									CloseZip(hz);
 									MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
 									FindFile(hListView_1,dir);
 								}
 								else
-									MessageBox(0,_T("Input file must be .ar002"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+									MessageBox(0,_T("Input file must be .zip"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
 							}
 							else
 								MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
@@ -1239,6 +1099,10 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 					}
 					else
 						MessageBox(0,_T("Choose method"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+			}
+			if (wcscmp(option,_T("AR002"))==0)
+			{
+
 			}
 			if (wcscmp(option,_T("FIN"))==0)
 			{

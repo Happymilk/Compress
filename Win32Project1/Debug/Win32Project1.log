@@ -1,45 +1,61 @@
-﻿Сборка начата 23.11.2015 13:02:37.
+﻿Сборка начата 23.11.2015 21:10:00.
      1>Проект "D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Win32Project1\Win32Project1.vcxproj" в узле 2 (целевые объекты Build).
      1>ClCompile:
-         D:\MS Visual\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\Win32Project1.pch" /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt Win32Project1.cpp
+         D:\MS Visual\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yc"stdafx.h" /Fp"Debug\Win32Project1.pch" /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt stdafx.cpp
+         stdafx.cpp
+         D:\MS Visual\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\Win32Project1.pch" /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt AR002Alg.cpp FinAlg.cpp Huf.cpp SplayAlg.cpp unzip.cpp Win32Project1.cpp zip.cpp
+         zip.cpp
          Win32Project1.cpp
      1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\resource.h(29): warning C4005: _WIN32_IE: изменение макроопределения
                  c:\program files (x86)\windows kits\8.0\include\shared\sdkddkver.h(233): см. предыдущее определение "_WIN32_IE"
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(163): warning C4101: hWnd: неиспользованная локальная переменная
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(419): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(441): warning C4307: +: переполнение целой константы
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(441): warning C4244: инициализация: преобразование "unsigned __int64" в "double", возможна потеря данных
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(443): warning C4996: 'swprintf': swprintf has been changed to conform with the ISO C standard, adding an extra character count parameter. To use traditional Microsoft swprintf, set _CRT_NON_CONFORMING_SWPRINTFS.
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(165): warning C4101: hWnd: неиспользованная локальная переменная
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(421): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(443): warning C4307: +: переполнение целой константы
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(443): warning C4244: инициализация: преобразование "unsigned __int64" в "double", возможна потеря данных
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(445): warning C4996: 'swprintf': swprintf has been changed to conform with the ISO C standard, adding an extra character count parameter. To use traditional Microsoft swprintf, set _CRT_NON_CONFORMING_SWPRINTFS.
                  d:\ms visual\vc\include\swprintf.inl(85): см. объявление "swprintf"
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(450): warning C4996: 'swprintf': swprintf has been changed to conform with the ISO C standard, adding an extra character count parameter. To use traditional Microsoft swprintf, set _CRT_NON_CONFORMING_SWPRINTFS.
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(452): warning C4996: 'swprintf': swprintf has been changed to conform with the ISO C standard, adding an extra character count parameter. To use traditional Microsoft swprintf, set _CRT_NON_CONFORMING_SWPRINTFS.
                  d:\ms visual\vc\include\swprintf.inl(85): см. объявление "swprintf"
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(495): warning C4307: +: переполнение целой константы
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(495): warning C4244: =: преобразование "unsigned __int64" в "double", возможна потеря данных
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(593): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(596): warning C4244: аргумент: преобразование "TCHAR" в "char", возможна потеря данных
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(636): warning C4129: *: неизвестная escape-последовательность
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(685): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(688): warning C4244: аргумент: преобразование "TCHAR" в "char", возможна потеря данных
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(707): warning C4258: i: определение из цикла for игнорируется; используется определение из внешней области видимости
-                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(685): пропуск определения "i"
-                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(275): используется определение "i"
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(707): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(710): warning C4258: i: определение из цикла for игнорируется; используется определение из внешней области видимости
-                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(685): пропуск определения "i"
-                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(275): используется определение "i"
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(710): warning C4244: аргумент: преобразование "TCHAR" в "char", возможна потеря данных
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(713): warning C4258: i: определение из цикла for игнорируется; используется определение из внешней области видимости
-                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(685): пропуск определения "i"
-                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(275): используется определение "i"
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(846): warning C4996: 'swprintf': swprintf has been changed to conform with the ISO C standard, adding an extra character count parameter. To use traditional Microsoft swprintf, set _CRT_NON_CONFORMING_SWPRINTFS.
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(497): warning C4307: +: переполнение целой константы
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(497): warning C4244: =: преобразование "unsigned __int64" в "double", возможна потеря данных
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(595): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(598): warning C4244: аргумент: преобразование "TCHAR" в "char", возможна потеря данных
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(638): warning C4129: *: неизвестная escape-последовательность
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(687): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(690): warning C4244: аргумент: преобразование "TCHAR" в "char", возможна потеря данных
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(709): warning C4258: i: определение из цикла for игнорируется; используется определение из внешней области видимости
+                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(687): пропуск определения "i"
+                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(277): используется определение "i"
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(709): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(712): warning C4258: i: определение из цикла for игнорируется; используется определение из внешней области видимости
+                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(687): пропуск определения "i"
+                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(277): используется определение "i"
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(712): warning C4244: аргумент: преобразование "TCHAR" в "char", возможна потеря данных
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(715): warning C4258: i: определение из цикла for игнорируется; используется определение из внешней области видимости
+                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(687): пропуск определения "i"
+                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(277): используется определение "i"
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(848): warning C4996: 'swprintf': swprintf has been changed to conform with the ISO C standard, adding an extra character count parameter. To use traditional Microsoft swprintf, set _CRT_NON_CONFORMING_SWPRINTFS.
                  d:\ms visual\vc\include\swprintf.inl(85): см. объявление "swprintf"
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(890): warning C4996: 'swprintf': swprintf has been changed to conform with the ISO C standard, adding an extra character count parameter. To use traditional Microsoft swprintf, set _CRT_NON_CONFORMING_SWPRINTFS.
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(892): warning C4996: 'swprintf': swprintf has been changed to conform with the ISO C standard, adding an extra character count parameter. To use traditional Microsoft swprintf, set _CRT_NON_CONFORMING_SWPRINTFS.
                  d:\ms visual\vc\include\swprintf.inl(85): см. объявление "swprintf"
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(1203): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(1313): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(1425): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(1535): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(1114): warning C4101: outFile: неиспользованная локальная переменная
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(1055): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(1177): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(1289): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(1399): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\win32project1.cpp(976): warning C4101: outFile: неиспользованная локальная переменная
+         unzip.cpp
+         SplayAlg.cpp
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\splayalg.cpp(266): warning C4273: SplaY::SplayAlg::mainSplay: несовместимая компоновка dll
+                 d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\splayalg.h(48): см. предыдущее определение "mainSplay"
+         Huf.cpp
+         FinAlg.cpp
+         AR002Alg.cpp
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\ar002alg.cpp(127): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\ar002alg.cpp(285): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\ar002alg.cpp(295): warning C4018: <=: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\ar002alg.cpp(313): warning C4018: <: несоответствие типов со знаком и без знака
+     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\win32project1\ar002alg.cpp(318): warning C4018: <=: несоответствие типов со знаком и без знака
+         Создание кода...
        Link:
          D:\MS Visual\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\Win32Project1.exe" /INCREMENTAL /NOLOGO comctl32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\Win32Project1.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\Win32Project1.lib" /MACHINE:X86 /EXPORTS Debug\Win32Project1.res
          Debug\AR002Alg.obj
@@ -47,11 +63,13 @@
          Debug\Huf.obj
          Debug\SplayAlg.obj
          Debug\stdafx.obj
+         Debug\unzip.obj
          Debug\Win32Project1.obj
+         Debug\zip.obj
      1>LINK : warning LNK4044: нераспознанный параметр "/EXPORTS"; игнорируется
          Win32Project1.vcxproj -> D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\Win32Project1.exe
      1>Построение проекта "D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Win32Project1\Win32Project1.vcxproj" завершено (целевые объекты Build).
 
 Построение успешно завершено.
 
-Затраченное время: 00:00:00.90
+Затраченное время: 00:00:01.87

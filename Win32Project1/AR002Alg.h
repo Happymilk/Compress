@@ -15,7 +15,6 @@ namespace AR002
 
 	#define FNAME_MAX (255 - 25) //max strlen(filename) 
 	#define namelen  header[19]
-	#define filename ((char *)&header[20])
 	#define INIT_CRC 0 //CCITT: 0xFFFF 
 	#define BITBUFSIZ (CHAR_BIT * sizeof bitbuf)
 	#define DICBIT 13 //12(-lh4-) or 13(-lh5-) 
@@ -51,6 +50,6 @@ namespace AR002
 	{
 	public:
 		AR002Alg(void);
-		int mainAr(int argsc, char *args[]);
+		void mainAr(int argsc, char *args1[], char *args2[], char *args3[]);
 	};
 }

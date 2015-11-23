@@ -11,7 +11,7 @@ ushort left[2 * NC - 1], right[2 * NC - 1];
 
 static int n, heapsize, remainder, matchlen, bitcount;
 static short heap[NC + 1];
-static char *temp_name;
+static char *temp_name, *filename;
 
 static ushort *freq, *sortptr, len_cnt[17], crctable[UCHAR_MAX + 1], c_freq[2 * NC - 1], 
 	c_table[4096], c_code[NC], p_freq[2 * NP - 1], pt_table[256], pt_code[NPT], t_freq[2 * NT - 1];
@@ -1186,7 +1186,7 @@ static int read_header(void)
 	compsize = get_from_header(5, 4);
 	origsize = get_from_header(9, 4);
 	file_crc = (uint)get_from_header(headersize - 5, 2);
-	filename[namelen] = '\0';
+	//filename[namelen] = '\0';
 	return 1;  //success 
 }
 
@@ -1422,20 +1422,23 @@ static void exitfunc(void)
 	remove(temp_name);
 }
 //
-int AR002Alg::mainAr(int argsc, char *args[])
+void AR002Alg::mainAr(int argsc, char *args1[], char *args2[], char *args3[])
 {
-	int i, j, cmd, count, nfiles, found, done;
+	char *args[3];
+	args[0]=args1[0];
+	args[1]=args2[0];
+	args[2]=args3[0];
+	int i=0, j=0, cmd=0, count=0, nfiles=0, found=0, done=0;
 
 	/* Check command line arguments. */
-	if (argsc < 3 || args[1][1] != '\0' || ! strchr("AXRDPL", cmd = toupper(args[1][0]))
-	 || (argsc == 3 && strchr("AD", cmd)))
+	if (argsc < 3 || args[0][1] != '\0')
 		error(usage);
 
 	/* Wildcards used? */
 	for (i = 3; i < argsc; i++)
 		if (strpbrk(args[i], "*?")) 
 			break;
-	if (cmd == 'A' && i < argsc)
+	if (args[0] == "A" && i < argsc)
 		error("Filenames may not contain '*' and '?'");
 	if (i < argsc) 
 		nfiles = -1;  /* contains wildcards */
@@ -1443,43 +1446,27 @@ int AR002Alg::mainAr(int argsc, char *args[])
 		nfiles = argsc - 3;     /* number of files to process */
 
 	/* Open archive. */
-	arcfile = fopen(args[2], "rb");
-	if (arcfile == NULL && cmd != 'A')
-		error("Can't open archive '%s'", args[2]);
+	arcfile = fopen(args[1], "rb");
+	if (arcfile == NULL && args[0] != "A")
+		error("Can't open archive '%s'", args[1]);
 
 	/* Open temporary file. */
-	if (strchr("ARD", cmd))
-	{
-		temp_name = tmpnam(NULL);
-		outfile = fopen(temp_name, "wb");
-		if (outfile == NULL)
-			error("Can't open temporary file");
-		atexit(exitfunc);
-	} 
-	else 
-		temp_name = NULL;
 
+	outfile = fopen(args[2], "wb");
+	if (outfile == NULL)
+		error("Can't open temporary file");
+	atexit(exitfunc);
+	
 	make_crctable();  
 	count = done = 0;
 
-	if (cmd == 'A') 
+	if (args[0] == "A") 
 	{
-		for (i = 3; i < argsc; i++) 
-		{
-			for (j = 3; j < i; j++)
-				if (strcmp(args[j], args[i]) == 0) 
-					break;
-			if (j == i) 
-			{
-				strcpy(filename, args[i]);
-				if (add(0)) 
-					count++;  
-				else 
-					args[i][0] = 0;
-			} 
-			else 
-				nfiles--;
-		}
+		filename=args[2];
+		if (add(0)) 
+			count++;  
+		else 
+			nfiles--;
 		if (count == 0 || arcfile == NULL)
 			done = 1;
 	}
@@ -1487,9 +1474,8 @@ int AR002Alg::mainAr(int argsc, char *args[])
 	while (! done && read_header()) 
 	{
 		found = search(argsc, args);
-		switch (cmd)
+		if(args[0]=="R")
 		{
-		case 'R':
 			if (found) 
 			{
 				if (add(1)) 
@@ -1499,29 +1485,34 @@ int AR002Alg::mainAr(int argsc, char *args[])
 			} 
 			else 
 				copy();
-			break;
-		case 'A':  
-		case 'D':
+			done=1;
+		}
+		if(args[0]=="A" || args[0]=="D")
+		{
 			if (found)
 			{
-				count += (cmd == 'D'); 
+				count += (args[0] == "D"); 
 				skip();
 			} 
 			else 
 				copy();
-			break;
-		case 'X':  
-		case 'P':
+			done=1;
+		}
+		if(args[0]=="X" || args[0]=="P")
+		{  
+			filename=args[2];
 			if (found) 
 			{
-				extract(cmd == 'X');
+				extract(args[0] == "X");
 				if (++count == nfiles) 
 					done = 1;
 			} 
 			else 
 				skip();
-			break;
-		case 'L':
+			done=1;
+		}
+		if(args[0]=="L")
+		{
 			if (found) 
 			{
 				if (count == 0) 
@@ -1530,20 +1521,19 @@ int AR002Alg::mainAr(int argsc, char *args[])
 				if (++count == nfiles) 
 					done = 1;
 			}
-			skip();  
-			break;
+			skip();
+			done=1;
 		}
 	}
 
-	if (temp_name != NULL && count != 0) 
+	if (filename != NULL && count != 0) 
 	{
 		fputc(0, outfile);  /* end of archive */
 		if (ferror(outfile) || fclose(outfile) == EOF)
 			error("Can't write");
-		remove(args[2]);  
-		rename(temp_name, args[2]);
+		//remove(args[2]);  
+		//rename(temp_name, args[2]);
 	}
 
 	printf("  %d files\n", count);
-	return EXIT_SUCCESS;
 }
