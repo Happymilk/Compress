@@ -23,7 +23,6 @@ struct Information
 	TCHAR name[MAX_PATH];
 	TCHAR type[MAX_PATH];
 	double size;    
-	BOOL flag;     //state
 	FILETIME crtd; //created
 	FILETIME last; //last access
 }info;
@@ -157,8 +156,6 @@ TBBUTTON tbButtons[numButtons] =
 	{ MAKELONG(STD_HELP,   ImageListID), IDM_INFO, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Info"))      },
 	{ MAKELONG(STD_FILENEW,ImageListID), IDM_ARCH, TBSTATE_ENABLED, buttonStyles, {0}, 0, (INT_PTR)(_T("Arch Menu")) } 
 };
-
-HMODULE hSplayDll,hHufDll,hFinDll,hAr002Dll,hZipDll;
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,_In_ LPTSTR lpCmdLine,_In_ int nCmdShow)
 {
@@ -294,7 +291,7 @@ BOOL InitListViewImageLists(HWND hWndListView,int size, TCHAR c_dir[MAX_PATH])
 
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
-			do //присваеваем атрибуты
+			do 
 			{
 				ListView_GetItemText(hWndListView,LVcounter,0,buffer,MAX_PATH);
 				if (wcscmp(FindFileData.cFileName,buffer)==0)
@@ -401,7 +398,7 @@ void FindFile(HWND hList, TCHAR c_dir[MAX_PATH])
 					{
 						if((FindFileData.dwFileAttributes == 16)||(FindFileData.dwFileAttributes == 17))
 						{
-							View_List(FindFileData.cFileName,hList,i,0);//выз. ф-ция Viev_List передаем туда наиденый фаил ,и HWND ListBox и итератор i++,
+							View_List(FindFileData.cFileName,hList,i,0);
 							
 							ListView_SetItemText(hList,i,1,_T("<directory>"));
 							
@@ -412,7 +409,7 @@ void FindFile(HWND hList, TCHAR c_dir[MAX_PATH])
 					{
 						if(FindFileData.dwFileAttributes == 32)
 						{	 
-							View_List(FindFileData.cFileName,hList,i,0);//выз. ф-ция Viev_List передаем туда наиденый фаил ,и HWND ListBox и итератор i++,
+							View_List(FindFileData.cFileName,hList,i,0);
 							
 							TCHAR typestr[255],temp[255],finaltype[255];
 							int ending=0;
@@ -459,8 +456,8 @@ void FindFile(HWND hList, TCHAR c_dir[MAX_PATH])
 				}
 			} while (FindNextFile(hFind, &FindFileData) != 0);
 		
-			FindClose(hFind); //закрываем работу поиска фаилов
-			InitListViewImageLists(hList,i,c_dir);//тут уже передаем HWND ListBox, и кол-во фаилов
+			FindClose(hFind); 
+			InitListViewImageLists(hList,i,c_dir);
 		}
 		firstSearch=false;
 	}
@@ -539,7 +536,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     			case IDM_DEL:
     			{
 					Delete_File(cm_dir_from, dir, copy_buf1);
-					SendMessage(hListView_1,LVM_REDRAWITEMS,0,0);
 					FindFile(hListView_1,dir);
     				return 0;
     			}
@@ -558,7 +554,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     					cm_dir_to[wcslen(cm_dir_to)-1] = 0;
     					wcscat(cm_dir_to, copyBuffer);
     					CopyFile(cm_dir_from, cm_dir_to, FALSE);
-						SendMessage(hListView_1,LVM_REDRAWITEMS,0,0);
 					}
 					else
 					{
@@ -569,7 +564,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 						DeleteFile(cm_dir_from);
 						wcscpy(cm_dir_from,cm_dir_to);
 						isCutting=FALSE;
-						SendMessage(hListView_1,LVM_REDRAWITEMS,0,0);
 					}
 					FindFile(hListView_1,dir);
 					return 0;
@@ -679,8 +673,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			if ((lpnmHdr->idFrom == ID_LISTVIEW_1) && (lpnmHdr->code ==NM_DBLCLK))
 			{
-				// Копируем строку в буфер из ячейки ListView (pnmLV->iItem - номер строки;
-				// pnmLV->iSubItem - номер столбца)
 				wcscpy(buf1,_T(""));
 				ListView_GetItemText(lpnmHdr->hwndFrom, pnmLV->iItem, pnmLV->iSubItem, buf1, MAX_PATH);
 				if (lpnmHdr->idFrom == ID_LISTVIEW_1)
@@ -922,6 +914,146 @@ INT_PTR CALLBACK InfoWindow(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPara
 	return (INT_PTR)FALSE;
 }
 
+/*void mainZip(char *args[])
+{
+	//Open the ZIP archive
+    int err = 0;
+    zip *z = zip_open(args[2], 0, &err);
+
+    //Search for the file of given name
+    const char *name = args[1];
+    struct zip_stat st;
+    zip_stat_init(&st);
+    zip_stat(z, name, 0, &st);
+
+    //Alloc memory for its uncompressed contents
+    char *contents = new char[st.size];
+
+    //Read the compressed file
+    zip_file *f = zip_fopen(z, args[1], 0);
+    zip_fread(f, contents, st.size);
+    zip_fclose(f);
+
+    //And close the archive
+    zip_close(z);
+}
+
+int mainUnzip(int argsc, char *args[])
+{
+    if (argsc < 2 )
+    {
+        printf( "usage:\n%s {file to unzip}\n", args[ 0 ] );
+        return -1;
+    }
+
+    // Open the zip file
+    unzFile *zipfile = unzOpen( args[ 1 ] );
+    if ( zipfile == NULL )
+    {
+        printf( "%s: not found\n" );
+        return -1;
+    }
+
+    // Get info about the zip file
+    unz_global_info global_info;
+    if ( unzGetGlobalInfo( zipfile, &global_info ) != UNZ_OK )
+    {
+        printf( "could not read file global info\n" );
+        unzClose( zipfile );
+        return -1;
+    }
+
+    // Buffer to hold data read from the zip file.
+    char read_buffer[ READ_SIZE ];
+
+    // Loop to extract all files
+    uLong i;
+    for ( i = 0; i < global_info.number_entry; ++i )
+    {
+        // Get info about current file.
+        unz_file_info file_info;
+        char filename[ MAX_FILENAME ];
+        if ( unzGetCurrentFileInfo(
+            zipfile,
+            &file_info,
+            filename,
+            MAX_FILENAME,
+            NULL, 0, NULL, 0 ) != UNZ_OK )
+        {
+            printf( "could not read file info\n" );
+            unzClose( zipfile );
+            return -1;
+        }
+
+        // Check if this entry is a directory or file.
+        const size_t filename_length = strlen( filename );
+        if ( filename[ filename_length-1 ] == dir_delimter )
+        {
+            // Entry is a directory, so create it.
+            printf( "dir:%s\n", filename );
+            mkdir( filename );
+        }
+        else
+        {
+            // Entry is a file, so extract it.
+            printf( "file:%s\n", filename );
+            if ( unzOpenCurrentFile( zipfile ) != UNZ_OK )
+            {
+                printf( "could not open file\n" );
+                unzClose( zipfile );
+                return -1;
+            }
+
+            // Open a file to write out the data.
+            FILE *out = fopen( filename, "wb" );
+            if ( out == NULL )
+            {
+                printf( "could not open destination file\n" );
+                unzCloseCurrentFile( zipfile );
+                unzClose( zipfile );
+                return -1;
+            }
+
+            int error = UNZ_OK;
+            do    
+            {
+                error = unzReadCurrentFile( zipfile, read_buffer, READ_SIZE );
+                if ( error < 0 )
+                {
+                    printf( "error %d\n", error );
+                    unzCloseCurrentFile( zipfile );
+                    unzClose( zipfile );
+                    return -1;
+                }
+
+                // Write data to file.
+                if ( error > 0 )
+                {
+                    fwrite( read_buffer, error, 1, out ); // You should check return of fwrite...
+                }
+            } while ( error > 0 );
+
+            fclose( out );
+        }
+
+        unzCloseCurrentFile( zipfile );
+
+        // Go the the next entry listed in the zip file.
+        if ( ( i+1 ) < global_info.number_entry )
+        {
+            if ( unzGoToNextFile( zipfile ) != UNZ_OK )
+            {
+                printf( "cound not read next file\n" );
+                unzClose( zipfile );
+                return -1;
+            }
+        }
+    }
+
+    unzClose( zipfile );
+	return 0;
+}*/
+
 INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
@@ -987,15 +1119,348 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 			}
 			if (wcscmp(option,_T("AR002"))==0)
 			{
-				MessageBox(0,_T("ar!"), _T(""),MB_OK|MB_ICONASTERISK);
+				char *args[3];
+				char *tempFilePath=(char*)malloc(MAX_PATH);
+				char *tempCharStr=(char*)malloc(MAX_PATH);
+				TCHAR nameStr[MAX_PATH],pathStr[MAX_PATH],temp[MAX_PATH];
+
+				if(IsDlgButtonChecked(hDlg,ID_RBARCH))
+				{
+					args[0]="A";
+
+					index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+					if (index!=-1)
+					{
+						ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+						wcstombs(tempCharStr,temp,MAX_PATH);
+						wcstombs(tempFilePath,dir,MAX_PATH);
+						tempFilePath[strlen(tempFilePath)-1]=0;
+						strcat(tempFilePath,tempCharStr);
+						args[1]=tempFilePath;
+
+						wcscpy(nameStr,L"");
+						wcscpy(pathStr,L"");
+						GetWindowText(edit_name,nameStr,MAX_PATH);	
+						GetWindowText(edit_path,pathStr,MAX_PATH);
+						if (nameStr!=L"" && pathStr!=L"")
+						{
+							wcscat(pathStr,nameStr);
+							wcscat(pathStr,L".ar002");
+							wcstombs(tempCharStr,pathStr,MAX_PATH);
+							args[2]=tempCharStr;
+
+							AR002::AR002Alg arAlg;
+							arAlg.mainAr(3,args);
+
+							index=ListView_GetNextItem(hListView_1,index,LVIS_SELECTED|LVNI_BELOW);
+							while(index!=-1)
+							{
+								index=ListView_GetNextItem(hListView_1,index,LVIS_SELECTED|LVNI_BELOW);
+								ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+								wcstombs(tempCharStr,temp,MAX_PATH);
+								wcstombs(tempFilePath,dir,MAX_PATH);
+								tempFilePath[strlen(tempFilePath)-1]=0;
+								strcat(tempFilePath,tempCharStr);
+								args[1]=tempFilePath;
+
+								arAlg.mainAr(3,args);
+							}
+							MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+							FindFile(hListView_1,dir);
+						}
+						else
+							MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+				}
+				else
+					if(IsDlgButtonChecked(hDlg,ID_RBDISARCH))
+					{
+						args[0]="X";
+
+						index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+						if (index!=-1)
+						{
+							ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+							wcstombs(tempCharStr,temp,MAX_PATH);
+							wcstombs(tempFilePath,dir,MAX_PATH);
+							tempFilePath[strlen(tempFilePath)-1]=0;
+							strcat(tempFilePath,tempCharStr);
+							args[1]=tempFilePath;
+
+							wcscpy(nameStr,L"");
+							wcscpy(pathStr,L"");
+							GetWindowText(edit_name,nameStr,MAX_PATH);	
+							GetWindowText(edit_path,pathStr,MAX_PATH);
+							if (nameStr!=L"" && pathStr!=L"")
+							{
+								TCHAR typestr[255],temp[255];
+								int ending=0;
+								BOOL flag=false;
+								wcscpy(typestr,nameStr);
+								reverseString(typestr,temp);
+								while((ending<wcslen(temp)))
+								{
+									if(!flag)
+									{
+										if(temp[ending]=='.')
+										{
+											temp[ending]=NULL;
+											flag=true;
+										}
+									}
+									else
+										temp[ending]=NULL;
+									ending++;
+								}
+								wcscpy(typestr,temp);
+								reverseString(typestr,temp);
+								if(wcscmp(temp,_T("ar002"))==0)
+								{
+									nameStr[wcslen(nameStr)-6]=0;
+									wcscat(pathStr,nameStr);
+									wcstombs(tempCharStr,pathStr,MAX_PATH);
+									args[2]=tempCharStr;
+
+									AR002::AR002Alg arAlg;
+									arAlg.mainAr(3,args);
+									MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+									FindFile(hListView_1,dir);
+								}
+								else
+									MessageBox(0,_T("Input file must be .ar002"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+							}
+							else
+								MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+						}
+						else
+							MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose method"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
 			}
 			if (wcscmp(option,_T("FIN"))==0)
 			{
-				MessageBox(0,_T("fin!"), _T(""),MB_OK|MB_ICONASTERISK);
+				char *args[4];
+				char *tempFilePath=(char*)malloc(MAX_PATH);
+				char *tempCharStr=(char*)malloc(MAX_PATH);
+				TCHAR nameStr[MAX_PATH],pathStr[MAX_PATH],temp[MAX_PATH];
+
+				if(IsDlgButtonChecked(hDlg,ID_RBARCH))
+				{
+					index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+					if (index!=-1)
+					{
+						ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+						wcstombs(tempCharStr,temp,MAX_PATH);
+						wcstombs(tempFilePath,dir,MAX_PATH);
+						tempFilePath[strlen(tempFilePath)-1]=0;
+						strcat(tempFilePath,tempCharStr);
+						args[1]=tempFilePath;
+
+						wcscpy(nameStr,L"");
+						wcscpy(pathStr,L"");
+						GetWindowText(edit_name,nameStr,MAX_PATH);	
+						GetWindowText(edit_path,pathStr,MAX_PATH);
+						if (nameStr!=L"" && pathStr!=L"")
+						{
+							wcscat(pathStr,nameStr);
+							wcscat(pathStr,L".fin");
+							wcstombs(tempCharStr,pathStr,MAX_PATH);
+							args[2]=tempCharStr;
+							
+							FILE *a = fopen(args[1],"rb");
+						    FILE *b = fopen(args[2],"wb");
+							Fin::FinAlg fAlg;
+							fAlg.Compress(a,b);
+						    fclose(a);
+						    fclose(b); 
+
+							MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+							FindFile(hListView_1,dir);
+						}
+						else
+							MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+				}
+				else
+					if(IsDlgButtonChecked(hDlg,ID_RBDISARCH))
+					{
+						index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+						if (index!=-1)
+						{
+							ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+							wcstombs(tempCharStr,temp,MAX_PATH);
+							wcstombs(tempFilePath,dir,MAX_PATH);
+							tempFilePath[strlen(tempFilePath)-1]=0;
+							strcat(tempFilePath,tempCharStr);
+							args[1]=tempFilePath;
+
+							wcscpy(nameStr,L"");
+							wcscpy(pathStr,L"");
+							GetWindowText(edit_name,nameStr,MAX_PATH);	
+							GetWindowText(edit_path,pathStr,MAX_PATH);
+							if (nameStr!=L"" && pathStr!=L"")
+							{
+								TCHAR typestr[255],temp[255];
+								int ending=0;
+								BOOL flag=false;
+								wcscpy(typestr,nameStr);
+								reverseString(typestr,temp);
+								while((ending<wcslen(temp)))
+								{
+									if(!flag)
+									{
+										if(temp[ending]=='.')
+										{
+											temp[ending]=NULL;
+											flag=true;
+										}
+									}
+									else
+										temp[ending]=NULL;
+									ending++;
+								}
+								wcscpy(typestr,temp);
+								reverseString(typestr,temp);
+								if(wcscmp(temp,_T("fin"))==0)
+								{
+									nameStr[wcslen(nameStr)-4]=0;
+									wcscat(pathStr,nameStr);
+									wcstombs(tempCharStr,pathStr,MAX_PATH);
+									args[2]=tempCharStr;
+
+									FILE *a = fopen(args[1],"rb");
+									FILE *b = fopen(args[2],"wb");
+									Fin::FinAlg fAlg;
+									fAlg.Decompress(a,b);
+									fclose(a);
+									fclose(b); 
+
+									MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+									FindFile(hListView_1,dir);
+								}
+								else
+									MessageBox(0,_T("Input file must be .fin"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+							}
+							else
+								MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+						}
+						else
+							MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose method"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
 			}
 			if (wcscmp(option,_T("HUFFMAN"))==0)
 			{
-				MessageBox(0,_T("huf!"), _T(""),MB_OK|MB_ICONASTERISK);
+				char *args[4];
+				char *tempFilePath=(char*)malloc(MAX_PATH);
+				char *tempCharStr=(char*)malloc(MAX_PATH);
+				TCHAR nameStr[MAX_PATH],pathStr[MAX_PATH],temp[MAX_PATH];
+
+				if(IsDlgButtonChecked(hDlg,ID_RBARCH))
+				{
+					args[0]="";
+
+					index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+					if (index!=-1)
+					{
+						ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+						wcstombs(tempCharStr,temp,MAX_PATH);
+						wcstombs(tempFilePath,dir,MAX_PATH);
+						tempFilePath[strlen(tempFilePath)-1]=0;
+						strcat(tempFilePath,tempCharStr);
+						args[1]=tempFilePath;
+
+						wcscpy(nameStr,L"");
+						wcscpy(pathStr,L"");
+						GetWindowText(edit_name,nameStr,MAX_PATH);	
+						GetWindowText(edit_path,pathStr,MAX_PATH);
+						if (nameStr!=L"" && pathStr!=L"")
+						{
+							wcscat(pathStr,nameStr);
+							wcscat(pathStr,L".huf");
+							wcstombs(tempCharStr,pathStr,MAX_PATH);
+							args[2]=tempCharStr;
+
+							HuF::HufAlg hAlg;
+							hAlg.Compress(3,args);
+							MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+							FindFile(hListView_1,dir);
+						}
+						else
+							MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+				}
+				else
+					if(IsDlgButtonChecked(hDlg,ID_RBDISARCH))
+					{
+						index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+						if (index!=-1)
+						{
+							ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+							wcstombs(tempCharStr,temp,MAX_PATH);
+							wcstombs(tempFilePath,dir,MAX_PATH);
+							tempFilePath[strlen(tempFilePath)-1]=0;
+							strcat(tempFilePath,tempCharStr);
+							args[1]=tempFilePath;
+
+							wcscpy(nameStr,L"");
+							wcscpy(pathStr,L"");
+							GetWindowText(edit_name,nameStr,MAX_PATH);	
+							GetWindowText(edit_path,pathStr,MAX_PATH);
+							if (nameStr!=L"" && pathStr!=L"")
+							{
+								TCHAR typestr[255],temp[255];
+								int ending=0;
+								BOOL flag=false;
+								wcscpy(typestr,nameStr);
+								reverseString(typestr,temp);
+								while((ending<wcslen(temp)))
+								{
+									if(!flag)
+									{
+										if(temp[ending]=='.')
+										{
+											temp[ending]=NULL;
+											flag=true;
+										}
+									}
+									else
+										temp[ending]=NULL;
+									ending++;
+								}
+								wcscpy(typestr,temp);
+								reverseString(typestr,temp);
+								if(wcscmp(temp,_T("huf"))==0)
+								{
+									nameStr[wcslen(nameStr)-4]=0;
+									wcscat(pathStr,nameStr);
+									wcstombs(tempCharStr,pathStr,MAX_PATH);
+									args[2]=tempCharStr;
+
+									HuF::HufAlg hAlg;
+									hAlg.Decompress(3,args);
+									MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+									FindFile(hListView_1,dir);
+								}
+								else
+									MessageBox(0,_T("Input file must be .huf"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+							}
+							else
+								MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+						}
+						else
+							MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose method"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
 			}
 			if (wcscmp(option,_T("SPLAY"))==0)
 			{

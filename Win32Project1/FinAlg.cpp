@@ -3,14 +3,13 @@
 
 using namespace Fin;
 
-// table with predictions
-char pcTable[32768U];
+char pcTable[32768U];// table with predictions
 
 FinAlg::FinAlg(void)
 {
 }
 
-void Compress (FILE *pfIn, FILE *pfOut)
+void FinAlg::Compress(FILE *pfIn, FILE *pfOut)
 {
    int c;                // character
    int i;                // loop counter
@@ -20,62 +19,49 @@ void Compress (FILE *pfIn, FILE *pfOut)
    int bctr=0;           // position in buf
    unsigned char mask=0; // mask to mark successful predictions
 
-   memset (pcTable, 32, 32768U); // space (ASCII 32) is the most used char
+   memset(pcTable, 32, 32768U); // space (ASCII 32) is the most used char
 
-   c = fgetc (pfIn);
+   c = fgetc(pfIn);
    while (c!=EOF)
    {
-      // try to predict the next character
-      if (pcTable[INDEX(p1,p2)]==(char)c)
-	  {
-         // correct prediction, mark bit for correct prediction
-         mask = mask ^ (1<<ctr);
-      } 
+      if (pcTable[INDEX(p1,p2)]==(char)c)// try to predict the next character
+         mask = mask ^ (1<<ctr);// correct prediction, mark bit for correct prediction
 	  else 
 	  {
-         // wrong prediction, but next time ...
-         pcTable[INDEX(p1,p2)]=(char)c;
+         pcTable[INDEX(p1,p2)]=(char)c;// wrong prediction, but next time ...
 
-         // buf keeps character temporarily in buffer
-         buf[bctr++] = (char)c;
+         buf[bctr++] = (char)c; // buf keeps character temporarily in buffer
       }
 
-      // test if mask is full (8 characters read)
-      if (++ctr==8)
+      if (++ctr==8)// test if mask is full (8 characters read)
 	  {
-         // write mask
-         fputc ((char)mask, pfOut);
+         fputc ((char)mask, pfOut);// write mask
 
-         // write kept characters
-         for (i=0;i<bctr;i++)
+         for (i=0;i<bctr;i++)// write kept characters
             fputc (buf[i], pfOut);
 
-         // reset variables
          ctr=0;
          bctr=0;
          mask=0;
       }
 
-      // shift characters
+      //shift characters
       p1 = p2; 
 	  p2 = (char)c;
 
-      c = fgetc (pfIn);
+      c = fgetc(pfIn);
    }
 
-   // EOF, but there might be some left for output
-   if (ctr)
+   if (ctr)// EOF, but there might be some left for output
    {
-      // write mask
-      fputc ((char)mask, pfOut);
+      fputc ((char)mask, pfOut);// write mask
 
-      // write kept characters
-      for (i=0;i<bctr;i++)
+      for (i=0;i<bctr;i++)// write kept characters
          fputc (buf[i], pfOut);
    }
 }
 
-void Decompress (FILE *pfin, FILE *pfout)
+void FinAlg::Decompress(FILE *pfin, FILE *pfout)
 {
    int ci,co;            // characters (in and out)
    char p1=0, p2=0;      // previous 2 characters
@@ -86,22 +72,16 @@ void Decompress (FILE *pfin, FILE *pfout)
 
    ci = fgetc (pfin);
    while (ci!=EOF)
-   {
-      // get mask (for 8 characters)
-      mask = (unsigned char)(char)ci;
+   {      
+      mask = (unsigned char)(char)ci;// get mask (for 8 characters)
 
-      // for each bit in the mask
-      for (ctr=0; ctr<8; ctr++)
+      for (ctr=0; ctr<8; ctr++)// for each bit in the mask
 	  {
          if (mask & (1<<ctr))
-		 {
-            // predicted character
-            co = pcTable[INDEX(p1,p2)];
-         } 
+            co = pcTable[INDEX(p1,p2)];// predicted character
 		 else 
 		 {
-            // not predicted character
-            co = fgetc (pfin);
+            co = fgetc (pfin);// not predicted character
             if (co==EOF) 
 				return; // decompression completed !
 			pcTable[INDEX(p1,p2)] = (char)co;
@@ -113,18 +93,3 @@ void Decompress (FILE *pfin, FILE *pfout)
       ci = fgetc (pfin);
    }
 }
-
-///* test program by compressing and decompressing a file */
-//void main (){
-//   FILE *a = fopen ("in","rb");
-//   FILE *b = fopen ("out","wb");
-//   Compress (a,b);
-//   fclose (a);
-//   fclose (b);
-//
-//   a = fopen ("out","rb");
-//   b = fopen ("rin","wb");
-//   Decompress (a, b);
-//   fclose (a);
-//   fclose (b);
-//}

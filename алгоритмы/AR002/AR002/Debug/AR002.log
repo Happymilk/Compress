@@ -1,18 +1,5 @@
-﻿Сборка начата 15.11.2015 15:38:07.
-     1>Проект "D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\AR002\AR002\AR002.vcxproj" в узле 4 (целевые объекты Rebuild).
-     1>ClCompile:
-         D:\MS Visual\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D AR002_EXPORTS /D _CRT_SECURE_NO_WARNINGS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc110.pdb" /Gd /TP /analyze- /errorReport:prompt AR002Alg.cpp
-         AR002Alg.cpp
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\алгоритмы\ar002\ar002\ar002alg.cpp(192): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\алгоритмы\ar002\ar002\ar002alg.cpp(350): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\алгоритмы\ar002\ar002\ar002alg.cpp(360): warning C4018: <=: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\алгоритмы\ar002\ar002\ar002alg.cpp(378): warning C4018: <: несоответствие типов со знаком и без знака
-     1>d:\учёба\3 курс\1 сем\осисп\кусрач\win32project1\алгоритмы\ar002\ar002\ar002alg.cpp(383): warning C4018: <=: несоответствие типов со знаком и без знака
-       Link:
-         D:\MS Visual\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\AR002.dll" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\AR002.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\AR002.lib" /MACHINE:X86 /DLL Debug\AR002Alg.obj
-         AR002.vcxproj -> D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\Debug\AR002.dll
-     1>Построение проекта "D:\учёба\3 курс\1 сем\ОСИСП\кусрач\Win32Project1\алгоритмы\AR002\AR002\AR002.vcxproj" завершено (целевые объекты Rebuild).
+﻿Сборка начата 23.11.2015 2:06:46.
 
 Построение успешно завершено.
 
-Затраченное время: 00:00:00.58
+Затраченное время: 00:00:00.04

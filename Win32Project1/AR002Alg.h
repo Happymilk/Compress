@@ -1,9 +1,3 @@
-#ifdef AR002_EXPORTS
-#define AR002_API __declspec(dllexport) 
-#else
-#define AR002_API __declspec(dllimport) 
-#endif
-
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -55,31 +49,8 @@ namespace AR002
 
 	class AR002Alg
 	{
-	private:
-		void error(char *fmt, ...);
-		void make_crctable(void);
-		void fillbuf(int n);
-		uint getbits(int n);
-		void putbits(int n, uint x);
-		int fread_crc(uchar *p, int n, FILE *f);
-		void fwrite_crc(uchar *p, int n, FILE *f);
-		void init_getbits(void);
-		void init_putbits(void);
-
-		void huf_encode_start(void);
-		void huf_decode_start(void);
-		uint decode_c(void);
-		uint decode_p(void);
-		void output(uint c, uint p);
-		void huf_encode_end(void);
-
-		void make_table(int nchar, uchar bitlen[], int tablebits, ushort table[]);
-
-		int make_tree(int nparm, ushort freqparm[],	uchar lenparm[], ushort codeparm[]);
 	public:
 		AR002Alg(void);
-		AR002_API void encode(void);
-		AR002_API void decode_start(void);
-		AR002_API void decode(uint count, uchar text[]);
+		int mainAr(int argsc, char *args[]);
 	};
 }

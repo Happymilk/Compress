@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "Huf.h"
 
-using namespace Huf;
+using namespace HuF;
 
 short father[512], decomp_tree[512];
 unsigned short code[256], heap_length;
@@ -50,12 +50,6 @@ void compress_image()
    compress_charcount = ++curbyte;
 }
 
-/**************************************************************************
-
- COMPRESSION_REPORT ()
-
- This function displays the results of the compression sequence.
- **************************************************************************/
 void compression_report()
 {
    float savings;
@@ -74,12 +68,6 @@ void compression_report()
    printf ("\nPercentage savings      : %3.2f%%\n", savings);
 }
 
-/**************************************************************************
-
- GENERATE_CODE_TABLE ()
-
- This function generates the compression code table.
- **************************************************************************/
 unsigned short generate_code_table()
 {
    register unsigned short loop;
@@ -122,12 +110,8 @@ unsigned short generate_code_table()
    return (1);
 }
 
-/**************************************************************************
-
- REHEAP ()
-
- This function creates a "legal" heap from the current heap tree structure.
- **************************************************************************/
+/* REHEAP ()
+This function creates a "legal" heap from the current heap tree structure.*/
 void reheap(unsigned short heap_entry)
 {
    register unsigned short index;
@@ -156,12 +140,6 @@ void reheap(unsigned short heap_entry)
    heap[heap_entry] = heap_value;
 }
 
-/**************************************************************************
-
- BUILD_CODE_TREE ()
-
- This function builds the compression code tree.
- **************************************************************************/
 void build_code_tree()
 {
    register unsigned short findex;
@@ -187,12 +165,8 @@ void build_code_tree()
    father[256] = 0;
 }
 
-/**************************************************************************
-
- BUILD_INITIAL_HEAP ()
-
- This function builds a heap from the initial frequency count data.
- **************************************************************************/
+/*BUILD_INITIAL_HEAP ()
+This function builds a heap from the initial frequency count data.*/
 void build_initial_heap()
 {
    register unsigned short loop;
@@ -204,16 +178,12 @@ void build_initial_heap()
          heap[++heap_length] = (unsigned long) loop;
 
    for (loop = heap_length; loop > 0; loop--)
-      reheap (loop);
+      reheap(loop);
 }
 
-/**************************************************************************
-
- GET_FREQUENCY_COUNT ()
-
- This function counts the number of occurrences of each byte in the data
- that are to be compressed.
- **************************************************************************/
+/* GET_FREQUENCY_COUNT ()
+This function counts the number of occurrences of each byte in the data that are 
+to be compressed.*/
 void get_frequency_count()
 {
    register unsigned long loop;
@@ -222,18 +192,7 @@ void get_frequency_count()
       frequency_count[getc (ifile)]++;
 }
 
-/**************************************************************************
-
- MAIN ()
-
- This is the main program. It performs the Huffman encoding procedure in
- 5 separate steps.
-
- I know that this program can be made more compact & faster, but I was more
- interested in UNDERSTANDABILITY !!!
-
- **************************************************************************/
-void Compress(int count, char *args[])
+void HufAlg::Compress(int count, char *args[])
 {
    if (count == 3)
    {
@@ -303,13 +262,7 @@ void Compress(int count, char *args[])
       printf ("Usage:  HUFF1 <input filename> <output filename>\n\n");
 }
 
-/**************************************************************************
-
- BUILD_DECOMP_TREE ()
-
- This function builds the decompression tree.
- **************************************************************************/
-void  build_decomp_tree()
+void build_decomp_tree()
 {
    register unsigned short loop1;
    register unsigned short current_index;
@@ -336,12 +289,6 @@ void  build_decomp_tree()
    }
 }
 
-/**************************************************************************
-
- DECOMPRESS_IMAGE ()
-
- This function decompresses the compressed image.
- **************************************************************************/
 void decompress_image()
 {
    register unsigned short cindex = 1;
@@ -373,18 +320,7 @@ void decompress_image()
    }
 }
 
-/**************************************************************************
-
- MAIN ()
-
- This is the main program. It performs the Huffman decoding procedure in
- 2 separate steps.
-
- I know that this program can be made more compact & faster, but I was more
- interested in UNDERSTANDABILITY !!!
-
- **************************************************************************/
-void Decompress(int count, char *args[])
+void HufAlg::Decompress(int count, char *args[])
 {
    void  build_decomp_tree (), decompress_image ();
 

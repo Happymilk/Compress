@@ -25,92 +25,6 @@ static node pos, matchpos, avail, *position, *parent, *prev, *next = NULL;
 
 AR002Alg::AR002Alg(void)
 {
-//	int main(int argc, char *argv[])
-//{
-//	int i, j, cmd, count, nfiles, found, done;
-//
-//	/* Check command line arguments. */
-//	if (argc < 3
-//	 || argv[1][1] != '\0'
-//	 || ! strchr("AXRDPL", cmd = toupper(argv[1][0]))
-//	 || (argc == 3 && strchr("AD", cmd)))
-//		error(usage);
-//
-//	/* Wildcards used? */
-//	for (i = 3; i < argc; i++)
-//		if (strpbrk(argv[i], "*?")) break;
-//	if (cmd == 'A' && i < argc)
-//		error("Filenames may not contain '*' and '?'");
-//	if (i < argc) nfiles = -1;  /* contains wildcards */
-//	else nfiles = argc - 3;     /* number of files to process */
-//
-//	/* Open archive. */
-//	arcfile = fopen(argv[2], "rb");
-//	if (arcfile == NULL && cmd != 'A')
-//		error("Can't open archive '%s'", argv[2]);
-//
-//	/* Open temporary file. */
-//	if (strchr("ARD", cmd)) {
-//		temp_name = tmpnam(NULL);
-//		outfile = fopen(temp_name, "wb");
-//		if (outfile == NULL)
-//			error("Can't open temporary file");
-//		atexit(exitfunc);
-//	} else temp_name = NULL;
-//
-//	make_crctable();  count = done = 0;
-//
-//	if (cmd == 'A') {
-//		for (i = 3; i < argc; i++) {
-//			for (j = 3; j < i; j++)
-//				if (strcmp(argv[j], argv[i]) == 0) break;
-//			if (j == i) {
-//				strcpy(filename, argv[i]);
-//				if (add(0)) count++;  else argv[i][0] = 0;
-//			} else nfiles--;
-//		}
-//		if (count == 0 || arcfile == NULL) done = 1;
-//	}
-//
-//	while (! done && read_header()) {
-//		found = search(argc, argv);
-//		switch (cmd) {
-//		case 'R':
-//			if (found) {
-//				if (add(1)) count++;  else copy();
-//			} else copy();
-//			break;
-//		case 'A':  case 'D':
-//			if (found) {
-//				count += (cmd == 'D');  skip();
-//			} else copy();
-//			break;
-//		case 'X':  case 'P':
-//			if (found) {
-//				extract(cmd == 'X');
-//				if (++count == nfiles) done = 1;
-//			} else skip();
-//			break;
-//		case 'L':
-//			if (found) {
-//				if (count == 0) list_start();
-//				list();
-//				if (++count == nfiles) done = 1;
-//			}
-//			skip();  break;
-//		}
-//	}
-//
-//	if (temp_name != NULL && count != 0) {
-//		fputc(0, outfile);  /* end of archive */
-//		if (ferror(outfile) || fclose(outfile) == EOF)
-//			error("Can't write");
-//		remove(argv[2]);  rename(temp_name, argv[2]);
-//	}
-//
-//	printf("  %d files\n", count);
-//	return EXIT_SUCCESS;
-//}
 }
 
 //io
@@ -1508,3 +1422,128 @@ static void exitfunc(void)
 	remove(temp_name);
 }
 //
+int AR002Alg::mainAr(int argsc, char *args[])
+{
+	int i, j, cmd, count, nfiles, found, done;
+
+	/* Check command line arguments. */
+	if (argsc < 3 || args[1][1] != '\0' || ! strchr("AXRDPL", cmd = toupper(args[1][0]))
+	 || (argsc == 3 && strchr("AD", cmd)))
+		error(usage);
+
+	/* Wildcards used? */
+	for (i = 3; i < argsc; i++)
+		if (strpbrk(args[i], "*?")) 
+			break;
+	if (cmd == 'A' && i < argsc)
+		error("Filenames may not contain '*' and '?'");
+	if (i < argsc) 
+		nfiles = -1;  /* contains wildcards */
+	else 
+		nfiles = argsc - 3;     /* number of files to process */
+
+	/* Open archive. */
+	arcfile = fopen(args[2], "rb");
+	if (arcfile == NULL && cmd != 'A')
+		error("Can't open archive '%s'", args[2]);
+
+	/* Open temporary file. */
+	if (strchr("ARD", cmd))
+	{
+		temp_name = tmpnam(NULL);
+		outfile = fopen(temp_name, "wb");
+		if (outfile == NULL)
+			error("Can't open temporary file");
+		atexit(exitfunc);
+	} 
+	else 
+		temp_name = NULL;
+
+	make_crctable();  
+	count = done = 0;
+
+	if (cmd == 'A') 
+	{
+		for (i = 3; i < argsc; i++) 
+		{
+			for (j = 3; j < i; j++)
+				if (strcmp(args[j], args[i]) == 0) 
+					break;
+			if (j == i) 
+			{
+				strcpy(filename, args[i]);
+				if (add(0)) 
+					count++;  
+				else 
+					args[i][0] = 0;
+			} 
+			else 
+				nfiles--;
+		}
+		if (count == 0 || arcfile == NULL)
+			done = 1;
+	}
+
+	while (! done && read_header()) 
+	{
+		found = search(argsc, args);
+		switch (cmd)
+		{
+		case 'R':
+			if (found) 
+			{
+				if (add(1)) 
+					count++;  
+				else 
+					copy();
+			} 
+			else 
+				copy();
+			break;
+		case 'A':  
+		case 'D':
+			if (found)
+			{
+				count += (cmd == 'D'); 
+				skip();
+			} 
+			else 
+				copy();
+			break;
+		case 'X':  
+		case 'P':
+			if (found) 
+			{
+				extract(cmd == 'X');
+				if (++count == nfiles) 
+					done = 1;
+			} 
+			else 
+				skip();
+			break;
+		case 'L':
+			if (found) 
+			{
+				if (count == 0) 
+					list_start();
+				list();
+				if (++count == nfiles) 
+					done = 1;
+			}
+			skip();  
+			break;
+		}
+	}
+
+	if (temp_name != NULL && count != 0) 
+	{
+		fputc(0, outfile);  /* end of archive */
+		if (ferror(outfile) || fclose(outfile) == EOF)
+			error("Can't write");
+		remove(args[2]);  
+		rename(temp_name, args[2]);
+	}
+
+	printf("  %d files\n", count);
+	return EXIT_SUCCESS;
+}
