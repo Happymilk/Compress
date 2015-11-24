@@ -1,14 +1,6 @@
 #ifndef _unzip_H
 #define _unzip_H
 
-// UNZIPPING functions -- for unzipping.
-// This file is a repackaged form of extracts from the zlib code available
-// at www.gzip.org/zlib, by Jean-Loup Gailly and Mark Adler. The original
-// copyright notice may be found in unzip.cpp. The repackaging was done
-// by Lucian Wischik to simplify and extend its use in Windows/C++. Also
-// encryption and unicode filenames have been added.
-
-
 #ifndef _zip_H
 DECLARE_HANDLE(HZIP);
 #endif
