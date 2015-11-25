@@ -1017,6 +1017,32 @@ void UseBasicAlgorithm(HWND hDlg,TCHAR option[MAX_PATH],char *alg,TCHAR formatOf
 			MessageBox(0,_T("Choose method"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
 }
 
+void getNameOfDir(TCHAR nameStr[MAX_PATH], TCHAR res[MAX_PATH])
+{
+	TCHAR typestr[255],temp[255];
+	int ending=0;
+	BOOL flag=false;
+	wcscpy(typestr,nameStr);
+	reverseString(typestr,temp);
+	while((ending<wcslen(temp)))
+	{
+		if(!flag)
+		{
+			if(temp[ending]=='\\')
+			{
+				temp[ending]=NULL;
+				flag=true;
+			}
+		}
+		else
+			temp[ending]=NULL;
+		ending++;
+	}
+	wcscpy(typestr,temp);
+	reverseString(typestr,temp);
+	wcscpy(res,temp);
+}
+
 INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
@@ -1049,17 +1075,17 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 							320, 8, 130, 110, hDlg, (HMENU) ID_COMBOBOXALG, hInst, NULL);
 		
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("ZIP"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RLE"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("LZ77"));
+		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("MOWN"));
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("HUFF"));
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("SHANNON-FANO"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE8"));
+		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RLE"));
+		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("LZ77"));
+		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE32S"));
+		/*SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE8"));
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE16"));
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE32"));
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE8S"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE16S"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE32S"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("MOWN"));
+		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE16S"));*/
 
 		SendMessage(cb_alg, CB_SETCURSEL, 0, 0);
 		
@@ -1085,7 +1111,7 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 
 			if (wcscmp(option,_T("ZIP"))==0)
 			{
-				TCHAR *args[2], tempFilePath[MAX_PATH];
+				TCHAR *args[2], tempFilePath[MAX_PATH], nameOfDir[MAX_PATH];
 				TCHAR nameStr[MAX_PATH],pathStr[MAX_PATH],temp[MAX_PATH];
 
 				if(IsDlgButtonChecked(hDlg,ID_RBARCH))
@@ -1112,9 +1138,18 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 								tempFilePath[wcslen(tempFilePath)-1]=0;
 								wcscat(tempFilePath,temp);
 								args[0]=tempFilePath;
-
-								ZipAdd(hz,temp, args[0]);
+								info=GetFileInform(args[0]);
+								if (wcscmp(info.type,_T("Directory"))==0)
+								{
+									getNameOfDir(args[0],nameOfDir);
+									ZipAddFolder(hz,nameOfDir);
+									index=ListView_GetNextItem(hListView_1,-1,LVNI_ALL);
+								}
+								else
+									ZipAdd(hz,temp, args[0]);
 								index=ListView_GetNextItem(hListView_1,index,LVIS_SELECTED|LVNI_BELOW);
+								if(index==0)
+									index=-1;
 							}
 							CloseZip(hz);
 							MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
