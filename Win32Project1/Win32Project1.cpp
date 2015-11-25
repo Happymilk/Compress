@@ -15,6 +15,7 @@
 #include "zip.h"
 #include "unzip.h"
 #include "BasicFileAlgs.h"
+#include "lzw.h"
 
 using namespace std;
 
@@ -1075,17 +1076,11 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 							320, 8, 130, 110, hDlg, (HMENU) ID_COMBOBOXALG, hInst, NULL);
 		
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("ZIP"));
+		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("LZW"));
+		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("LZ77"));
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("MOWN"));
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("HUFF"));
 		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("SHANNON-FANO"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RLE"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("LZ77"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE32S"));
-		/*SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE8"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE16"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE32"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE8S"));
-		SendMessage(cb_alg, CB_ADDSTRING, 0, (LPARAM)_T("RICE16S"));*/
 
 		SendMessage(cb_alg, CB_SETCURSEL, 0, 0);
 		
@@ -1214,9 +1209,92 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 					else
 						MessageBox(0,_T("Choose method"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
 			}
-			if (wcscmp(option,_T("RLE"))==0)
+			if (wcscmp(option,_T("LZW"))==0)
 			{
-				UseBasicAlgorithm(hDlg,option,"rle",_T("rle"));
+				char *args[3];
+				char *tempFilePath=(char*)malloc(MAX_PATH);
+				char *tempCharStr=(char*)malloc(MAX_PATH);
+				TCHAR nameStr[MAX_PATH],pathStr[MAX_PATH],temp[MAX_PATH];
+
+				if(IsDlgButtonChecked(hDlg,ID_RBARCH))
+				{
+					index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+					if (index!=-1)
+					{
+						ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+						wcstombs(tempCharStr,temp,MAX_PATH);
+						wcstombs(tempFilePath,dir,MAX_PATH);
+						tempFilePath[strlen(tempFilePath)-1]=0;
+						strcat(tempFilePath,tempCharStr);
+						args[1]=tempFilePath;
+
+						wcscpy(nameStr,L"");
+						wcscpy(pathStr,L"");
+						GetWindowText(edit_name,nameStr,MAX_PATH);	
+						GetWindowText(edit_path,pathStr,MAX_PATH);
+						if (nameStr!=L"" && pathStr!=L"")
+						{
+							wcscat(pathStr,nameStr);
+							wcscat(pathStr,L".lzw");
+							wcstombs(tempCharStr,pathStr,MAX_PATH);
+							args[2]=tempCharStr;
+
+							CLZWCompressFile lzw;
+							lzw.Compress(args[1],args[2]);
+							MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+							FindFile(hListView_1,dir);
+							SendMessage(hDlg,WM_CLOSE,0,0);
+						}
+						else
+							MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+				}
+				else
+					if(IsDlgButtonChecked(hDlg,ID_RBDISARCH))
+					{
+						index=ListView_GetNextItem(hListView_1,-1,LVIS_SELECTED);
+						if (index!=-1)
+						{
+							ListView_GetItemText(hListView_1,index,0,temp,MAX_PATH);
+							wcstombs(tempCharStr,temp,MAX_PATH);
+							wcstombs(tempFilePath,dir,MAX_PATH);
+							tempFilePath[strlen(tempFilePath)-1]=0;
+							strcat(tempFilePath,tempCharStr);
+							args[1]=tempFilePath;
+
+							wcscpy(nameStr,L"");
+							wcscpy(pathStr,L"");
+							GetWindowText(edit_name,nameStr,MAX_PATH);	
+							GetWindowText(edit_path,pathStr,MAX_PATH);
+							if (nameStr!=L"" && pathStr!=L"")
+							{
+								getTypeOfFile(nameStr,temp);
+								if(wcscmp(temp,_T("lzw"))==0)
+								{
+									nameStr[wcslen(nameStr)-4]=0;
+									wcscat(pathStr,nameStr);
+									wcstombs(tempCharStr,pathStr,MAX_PATH);
+									args[2]=tempCharStr;
+
+									CLZWCompressFile lzw;
+									lzw.Expand(args[1],args[2]);
+									MessageBox(0,_T("Done!"), _T(""),MB_OK|MB_ICONASTERISK);
+									FindFile(hListView_1,dir);
+									SendMessage(hDlg,WM_CLOSE,0,0);
+								}
+								else
+									MessageBox(0,_T("Input file must be .mown"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+							}
+							else
+								MessageBox(0,_T("Input name & path to file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+						}
+						else
+							MessageBox(0,_T("Choose any file"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
+					}
+					else
+						MessageBox(0,_T("Choose method"), _T("Info"),  MB_OK|MB_ICONINFORMATION);
 			}
 			if (wcscmp(option,_T("LZ77"))==0)
 			{
@@ -1229,30 +1307,6 @@ INT_PTR CALLBACK Archivation(HWND hDlg, UINT message, WPARAM wParam, LPARAM lPar
 			if (wcscmp(option,_T("SHANNON-FANO"))==0)
 			{
 				UseBasicAlgorithm(hDlg,option,"sf",_T("sf"));
-			}
-			if (wcscmp(option,_T("RICE8"))==0)
-			{
-				UseBasicAlgorithm(hDlg,option,"rice8",_T("rice"));
-			}
-			if (wcscmp(option,_T("RICE16"))==0)
-			{
-				UseBasicAlgorithm(hDlg,option,"rice16",_T("rice"));
-			}
-			if (wcscmp(option,_T("RICE32"))==0)
-			{
-				UseBasicAlgorithm(hDlg,option,"rice32",_T("rice"));
-			}
-			if (wcscmp(option,_T("RICE8S"))==0)
-			{
-				UseBasicAlgorithm(hDlg,option,"rice8s",_T("rice"));
-			}
-			if (wcscmp(option,_T("RICE16S"))==0)
-			{
-				UseBasicAlgorithm(hDlg,option,"rice16s",_T("rice"));
-			}
-			if (wcscmp(option,_T("RICE32S"))==0)
-			{
-				UseBasicAlgorithm(hDlg,option,"rice32s",_T("rice"));
 			}
 			if (wcscmp(option,_T("MOWN"))==0)
 			{
